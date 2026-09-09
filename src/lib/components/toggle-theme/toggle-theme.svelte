@@ -3,7 +3,7 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import { toggleMode } from 'mode-watcher';
 
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '$lib/components/ui/button';
 </script>
 
 <Button variant="outline" size="icon-sm" onclick={toggleMode} aria-label="Toggle theme">
