@@ -2,6 +2,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 
 	import favicon from '$lib/assets/favicon.svg';
+	import { Toaster } from '$lib/components/ui/sonner';
 	import geistLatin from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 
 	import './layout.css';
@@ -16,4 +17,5 @@
 </svelte:head>
 
 <ModeWatcher />
+<Toaster />
 {@render children()}
