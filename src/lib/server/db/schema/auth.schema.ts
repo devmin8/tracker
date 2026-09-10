@@ -1,4 +1,4 @@
-import { defineRelations, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
@@ -84,22 +84,3 @@ export const verification = sqliteTable(
 	},
 	(table) => [index('verification_identifier_idx').on(table.identifier)]
 );
-
-export const relations = defineRelations({ user, session, account, verification }, (r) => ({
-	user: {
-		sessions: r.many.session(),
-		accounts: r.many.account()
-	},
-	session: {
-		user: r.one.user({
-			from: r.session.userId,
-			to: r.user.id
-		})
-	},
-	account: {
-		user: r.one.user({
-			from: r.account.userId,
-			to: r.user.id
-		})
-	}
-}));

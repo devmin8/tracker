@@ -1,37 +1,16 @@
 import { json } from '@sveltejs/kit';
-import Papa from 'papaparse';
+
+import { importExpensesFromCsv } from '$lib/server/expenses';
 
 import type { RequestHandler } from './$types';
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024;
-
-export const POST: RequestHandler = async ({ request }) => {
-	const formData = await request.formData();
-	const file = formData.get('file');
-
-	if (!(file instanceof File)) {
-		return json({ message: 'A CSV file is required' }, { status: 400 });
+export const POST: RequestHandler = async ({ request, locals }) => {
+	if (!locals.user) {
+		return json({ message: 'Unauthorized' }, { status: 401 });
 	}
 
-	if (!file.name.toLowerCase().endsWith('.csv')) {
-		return json({ message: 'Only CSV files are supported' }, { status: 400 });
-	}
+	const result = await importExpensesFromCsv((await request.formData()).get('file'), locals.user.id);
+	if (!result.ok) return json({ message: result.message }, { status: result.status });
 
-	if (file.size > MAX_FILE_SIZE) {
-		return json({ message: 'Files must be 3 MB or smaller' }, { status: 400 });
-	}
-
-	const parsed = Papa.parse<Record<string, string>>(await file.text(), {
-		header: true,
-		skipEmptyLines: 'greedy'
-	});
-
-	if (parsed.errors.length > 0) {
-		return json({ message: 'The CSV could not be parsed' }, { status: 400 });
-	}
-
-	const rowCount = parsed.data.length;
-	console.info(`Expense import: ${file.name} contains ${rowCount} data rows`);
-
-	return json({ rowCount });
+	return json({ rowCount: result.rowCount });
 };

@@ -123,7 +123,7 @@
 	<FileDropZone.Root
 		{onUpload}
 		{onFileRejected}
-		maxFileSize={3 * FileDropZone.MEGABYTE}
+		maxFileSize={1 * FileDropZone.MEGABYTE}
 		accept=".csv,text/csv"
 		maxFiles={4}
 		fileCount={files.length}
