@@ -14,12 +14,6 @@
 import { isValid, parse } from 'date-fns';
 import Papa from 'papaparse';
 
-export type CsvRow = {
-	date: string;
-	description: string;
-	amount: string;
-};
-
 export type CleansedExpense = {
 	date: Date;
 	amount: number;
@@ -27,7 +21,7 @@ export type CleansedExpense = {
 	refinedDescription: string;
 };
 
-type ParseSuccess = { ok: true; rows: CsvRow[] };
+type ParseSuccess = { ok: true; expenses: CleansedExpense[] };
 type ParseFailure = { ok: false };
 
 const DATE_FORMATS = ['yyyy-MM-dd', 'MM/dd/yyyy'] as const;
@@ -42,25 +36,22 @@ export function parseExpenseCsv(text: string): ParseSuccess | ParseFailure {
 
 	if (parsed.errors.length > 0) return { ok: false };
 
-	return { ok: true, rows: toCsvRows(parsed.data) };
-}
-
-// Personal bank exports are trusted; unsupported rows are intentionally skipped.
-export function cleanse(rows: CsvRow[]): CleansedExpense[] {
 	const expenses: CleansedExpense[] = [];
 
-	for (const row of rows) {
-		const expense = cleanseRow(row);
+	for (const cols of parsed.data) {
+		const expense = toExpense(cols);
 		if (expense) expenses.push(expense);
 	}
 
-	return expenses;
+	return { ok: true, expenses };
 }
 
-function cleanseRow(row: CsvRow): CleansedExpense | null {
-	const description = row.description.trim();
-	const amount = toCents(row.amount);
-	const date = parseExpenseDate(row.date);
+// Personal bank exports are trusted; unsupported rows are intentionally skipped.
+function toExpense(cols: string[]): CleansedExpense | null {
+	const [rawDate = '', rawDescription = '', rawAmount = ''] = cols;
+	const description = rawDescription.trim();
+	const amount = toCents(rawAmount);
+	const date = parseExpenseDate(rawDate);
 
 	if (amount === null) return null;
 	if (!description || INTERNAL_TRANSFER.test(description)) return null;
@@ -78,9 +69,12 @@ function refineDescription(description: string): string {
 	if (description.toUpperCase().startsWith('PRES/')) return 'PRES';
 
 	let refined = description;
+
 	for (const marker of STRIP_MARKERS) {
 		const index = refined.indexOf(marker);
-		if (index !== -1) refined = refined.slice(0, index);
+		if (index !== -1) {
+			refined = refined.slice(0, index);
+		}
 	}
 
 	refined = refined.replace(/\s+/g, ' ').trim();
@@ -89,7 +83,9 @@ function refineDescription(description: string): string {
 
 function toCents(value: string): number | null {
 	const dollars = value.trim().replace(/[$,]/g, '');
-	if (!DOLLARS.test(dollars)) return null;
+	if (!DOLLARS.test(dollars)) {
+		return null;
+	}
 	return Math.round(Number(dollars) * 100);
 }
 
@@ -98,31 +94,10 @@ function parseExpenseDate(value: string): Date | null {
 
 	for (const format of DATE_FORMATS) {
 		const date = parse(trimmed, format, new Date(0));
-		if (isValid(date)) return date;
+		if (isValid(date)) {
+			return date;
+		}
 	}
 
 	return null;
-}
-
-function toCsvRows(data: string[][]): CsvRow[] {
-	if (data.length === 0) return [];
-
-	const header = data[0].map((cell) => cell.trim().toLowerCase());
-	const date = header.indexOf('date');
-	const description = header.indexOf('description');
-	const amount = header.indexOf('amount');
-
-	if (date >= 0 && description >= 0 && amount >= 0) {
-		return data.slice(1).map((cols) => ({
-			date: cols[date] ?? '',
-			description: cols[description] ?? '',
-			amount: cols[amount] ?? ''
-		}));
-	}
-
-	return data.map(([rowDate = '', rowDescription = '', rowAmount = '']) => ({
-		date: rowDate,
-		description: rowDescription,
-		amount: rowAmount
-	}));
 }

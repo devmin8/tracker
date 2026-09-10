@@ -9,8 +9,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Unauthorized' }, { status: 401 });
 	}
 
-	const result = await importExpensesFromCsv((await request.formData()).get('file'), locals.user.id);
-	if (!result.ok) return json({ message: result.message }, { status: result.status });
+	const file = (await request.formData()).get('file');
+	const result = await importExpensesFromCsv(file, locals.user.id);
+
+	if (!result.ok) {
+		return json({ message: result.message }, { status: result.status });
+	}
 
 	return json({ rowCount: result.rowCount });
 };

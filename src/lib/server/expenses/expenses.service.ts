@@ -1,36 +1,36 @@
 import { db } from '$lib/server/db';
 import { expense } from '$lib/server/db/schema';
 
-import { cleanse, parseExpenseCsv, type CleansedExpense } from './from-csv';
+import { parseExpenseCsv, type CleansedExpense } from './csv-util';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024;
 const INSERT_BATCH_SIZE = 500;
 
 export type ImportExpensesResult =
-	| { ok: true; rowCount: number }
-	| { ok: false; message: string; status: 400 };
+	{ ok: true; rowCount: number } | { ok: false; message: string; status: 400 };
 
 export async function importExpensesFromCsv(
 	file: FormDataEntryValue | null,
 	userId: string
 ): Promise<ImportExpensesResult> {
-	const validated = validateCsvFile(file);
-	if (!validated.ok) return validated;
+	const validatedResult = validateCsvFile(file);
+	if (!validatedResult.ok) {
+		return validatedResult;
+	}
 
-	const parsed = parseExpenseCsv(await validated.file.text());
+	const parsed = parseExpenseCsv(await validatedResult.file.text());
 	if (!parsed.ok) {
 		return { ok: false, message: 'The CSV could not be parsed', status: 400 };
 	}
 
-	const expenses = cleanse(parsed.rows);
-	await saveExpenses(expenses, userId);
+	await saveExpenses(parsed.expenses, userId);
 
-	return { ok: true, rowCount: expenses.length };
+	return { ok: true, rowCount: parsed.expenses.length };
 }
 
-function validateCsvFile(
-	file: FormDataEntryValue | null
-): { ok: true; file: File } | (ImportExpensesResult & { ok: false }) {
+type ValidateCsvFileResult = { ok: true; file: File } | (ImportExpensesResult & { ok: false });
+
+function validateCsvFile(file: FormDataEntryValue | null): ValidateCsvFileResult {
 	if (!(file instanceof File)) {
 		return { ok: false, message: 'A CSV file is required', status: 400 };
 	}
@@ -47,7 +47,9 @@ function validateCsvFile(
 }
 
 export async function saveExpenses(expenses: CleansedExpense[], userId: string) {
-	if (expenses.length === 0) return;
+	if (expenses.length === 0) {
+		return;
+	}
 
 	// Keep chunked inserts all-or-nothing.
 	await db.transaction(async (tx) => {

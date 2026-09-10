@@ -22,5 +22,8 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Vitest reports and artifacts
+.vitest/
+
 # DB
 *.db
