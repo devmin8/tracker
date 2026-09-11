@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { describe, expect, test } from 'vitest';
 
 import { parseExpenseCsv, type CleansedExpense } from './csv-util';
@@ -9,7 +8,7 @@ function csv(...rows: string[]) {
 
 function expenseSnapshot(expense: CleansedExpense) {
 	return {
-		date: format(expense.date, 'yyyy-MM-dd'),
+		expenseDate: expense.expenseDate,
 		amount: expense.amount,
 		description: expense.description,
 		refinedDescription: expense.refinedDescription
@@ -27,13 +26,13 @@ describe('parseExpenseCsv', () => {
 
 		expect(result.expenses.map(expenseSnapshot)).toEqual([
 			{
-				date: '2026-07-18',
+				expenseDate: '2026-07-18',
 				amount: 1250,
 				description: 'CAFE EXAMPLE',
 				refinedDescription: 'CAFE EXAMPLE'
 			},
 			{
-				date: '2026-03-23',
+				expenseDate: '2026-03-23',
 				amount: 450,
 				description: 'COFFEE SHOP #1001',
 				refinedDescription: 'COFFEE SHOP'
@@ -57,7 +56,7 @@ describe('parseExpenseCsv', () => {
 
 		expect(result.expenses.map(expenseSnapshot)).toEqual([
 			{
-				date: '2026-07-18',
+				expenseDate: '2026-07-18',
 				amount: 1250,
 				description: 'CAFE EXAMPLE',
 				refinedDescription: 'CAFE EXAMPLE'
@@ -94,13 +93,13 @@ describe('parseExpenseCsv', () => {
 
 		expect(result.expenses.map(expenseSnapshot)).toEqual([
 			{
-				date: '2026-07-18',
+				expenseDate: '2026-07-18',
 				amount: 123456,
 				description: 'CAFE EXAMPLE',
 				refinedDescription: 'CAFE EXAMPLE'
 			},
 			{
-				date: '2026-03-23',
+				expenseDate: '2026-03-23',
 				amount: -450,
 				description: 'REFUND',
 				refinedDescription: 'REFUND'
@@ -124,7 +123,7 @@ describe('parseExpenseCsv', () => {
 
 		expect(result.expenses).toHaveLength(1);
 		expect(expenseSnapshot(result.expenses[0])).toEqual({
-			date: '2026-07-18',
+			expenseDate: '2026-07-18',
 			amount: 1250,
 			description: 'CAFE EXAMPLE',
 			refinedDescription: 'CAFE EXAMPLE'
@@ -148,7 +147,7 @@ describe('parseExpenseCsv', () => {
 
 		expect(result.expenses).toHaveLength(1);
 		expect(expenseSnapshot(result.expenses[0])).toEqual({
-			date: '2026-07-18',
+			expenseDate: '2026-07-18',
 			amount: 1250,
 			description: 'CAFE EXAMPLE',
 			refinedDescription: 'CAFE EXAMPLE'

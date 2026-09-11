@@ -5,17 +5,18 @@
 //   06/25/2026,PAYMENT - THANK YOU,,40.00,5.00
 //   PTS TO:  00000000000
 //   SSV TO:  00000000000
-// Dates: MM/dd/yyyy or yyyy-MM-dd. Amounts stored as cents (12.50 -> 1250).
+// Dates: MM/dd/yyyy or yyyy-MM-dd, stored as canonical YYYY-MM-DD.
+// Amounts stored as cents (12.50 -> 1250).
 // Refined description:
 //   COFFEE SHOP #1001 -> COFFEE SHOP
 //   PRES/XXXX   _T -> PRES
 //   SEND E-TFR ***abc -> SEND E-TFR
 
-import { isValid, parse } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import Papa from 'papaparse';
 
 export type CleansedExpense = {
-	date: Date;
+	expenseDate: string;
 	amount: number;
 	description: string;
 	refinedDescription: string;
@@ -51,14 +52,14 @@ function toExpense(cols: string[]): CleansedExpense | null {
 	const [rawDate = '', rawDescription = '', rawAmount = ''] = cols;
 	const description = rawDescription.trim();
 	const amount = toCents(rawAmount);
-	const date = parseExpenseDate(rawDate);
+	const expenseDate = parseExpenseDate(rawDate);
 
 	if (amount === null) return null;
 	if (!description || INTERNAL_TRANSFER.test(description)) return null;
-	if (!date) return null;
+	if (!expenseDate) return null;
 
 	return {
-		date,
+		expenseDate,
 		amount,
 		description,
 		refinedDescription: refineDescription(description)
@@ -89,13 +90,13 @@ function toCents(value: string): number | null {
 	return Math.round(Number(dollars) * 100);
 }
 
-function parseExpenseDate(value: string): Date | null {
+function parseExpenseDate(value: string): string | null {
 	const trimmed = value.trim();
 
-	for (const format of DATE_FORMATS) {
-		const date = parse(trimmed, format, new Date(0));
+	for (const dateFormat of DATE_FORMATS) {
+		const date = parse(trimmed, dateFormat, new Date(0));
 		if (isValid(date)) {
-			return date;
+			return format(date, 'yyyy-MM-dd');
 		}
 	}
 

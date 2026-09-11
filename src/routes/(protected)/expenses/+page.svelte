@@ -4,8 +4,12 @@
 	import { toast } from 'svelte-sonner';
 
 	import { Button } from '$lib/components/ui/button';
+	import { Field, FieldDescription, FieldLabel } from '$lib/components/ui/field';
 	import * as FileDropZone from '$lib/components/ui/file-drop-zone';
+	import { Input } from '$lib/components/ui/input';
 	import { Progress } from '$lib/components/ui/progress';
+	import { currentCalendarMonth } from '$lib/utils/date';
+	import { xhr } from '$lib/utils/xhr';
 
 	type UploadStatus = 'pending' | 'uploading' | 'error';
 
@@ -17,11 +21,14 @@
 	};
 
 	let files = $state<UploadedFile[]>([]);
+	let month = $state(currentCalendarMonth());
 
 	const isUploading = $derived(files.some((file) => file.status === 'uploading'));
 
 	const canUpload = $derived(
-		!isUploading && files.some((file) => file.status === 'pending' || file.status === 'error')
+		!isUploading &&
+			Boolean(month) &&
+			files.some((file) => file.status === 'pending' || file.status === 'error')
 	);
 
 	const onUpload: FileDropZone.FileDropZoneRootProps['onUpload'] = async (selectedFiles) => {
@@ -59,9 +66,17 @@
 		uploadedFile.progress = 0;
 		uploadedFile.status = 'uploading';
 
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('month', month);
+
 		try {
-			const result = await sendFile(file, (progress) => {
-				uploadedFile.progress = progress;
+			const result = await xhr<{ rowCount: number }>({
+				url: '/expenses/upload',
+				body: formData,
+				onProgress: (progress) => {
+					uploadedFile.progress = progress;
+				}
 			});
 
 			uploadedFile.progress = 100;
@@ -76,50 +91,21 @@
 		}
 	}
 
-	function sendFile(
-		file: File,
-		onProgress: (progress: number) => void
-	): Promise<{ rowCount: number }> {
-		return new Promise((resolve, reject) => {
-			const request = new XMLHttpRequest();
-			const formData = new FormData();
-			formData.append('file', file);
-
-			request.upload.addEventListener('progress', (event) => {
-				if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
-			});
-
-			request.addEventListener('load', () => {
-				const response = parseResponse(request);
-
-				if (request.status >= 200 && request.status < 300) {
-					resolve(response as { rowCount: number });
-					return;
-				}
-
-				reject(new Error(response?.message ?? 'Upload failed'));
-			});
-
-			request.addEventListener('error', () => reject(new Error('Network error while uploading')));
-			request.open('POST', '/expenses/upload');
-			request.send(formData);
-		});
-	}
-
-	function parseResponse(request: XMLHttpRequest): { rowCount: number; message?: string } | null {
-		try {
-			return JSON.parse(request.responseText);
-		} catch {
-			return null;
-		}
-	}
-
 	function removeFile(id: string) {
 		files = files.filter((file) => file.id !== id);
 	}
 </script>
 
 <div class="flex flex-col gap-4">
+	<Field class="max-w-xs">
+		<FieldLabel for="import-month">Month to replace</FieldLabel>
+		<Input id="import-month" name="month" type="month" bind:value={month} required />
+		<FieldDescription>
+			This upload replaces your expenses for the selected month. Rows from other months in the
+			statement are ignored.
+		</FieldDescription>
+	</Field>
+
 	<FileDropZone.Root
 		{onUpload}
 		{onFileRejected}
