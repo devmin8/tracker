@@ -1,6 +1,33 @@
 import { describe, expect, test } from 'vitest';
 
-import { calendarMonthRange, currentCalendarMonth } from './date';
+import {
+	calendarMonthRange,
+	compareCalendarMonths,
+	currentCalendarMonth,
+	formatCalendarMonth,
+	parseCalendarMonth
+} from './date';
+
+describe('parseCalendarMonth', () => {
+	test('parses a zero-padded calendar month', () => {
+		expect(parseCalendarMonth('2026-09')).toEqual({ year: 2026, month: 9 });
+	});
+
+	test('rejects missing, unpadded, and out-of-range values', () => {
+		expect(parseCalendarMonth(undefined)).toBeUndefined();
+		expect(parseCalendarMonth('')).toBeUndefined();
+		expect(parseCalendarMonth('2026-9')).toBeUndefined();
+		expect(parseCalendarMonth('2026-13')).toBeUndefined();
+		expect(parseCalendarMonth('2026-00')).toBeUndefined();
+	});
+});
+
+describe('formatCalendarMonth', () => {
+	test('formats year and month as YYYY-MM', () => {
+		expect(formatCalendarMonth({ year: 2026, month: 9 })).toBe('2026-09');
+		expect(formatCalendarMonth({ year: 2026, month: 1 })).toBe('2026-01');
+	});
+});
 
 describe('currentCalendarMonth', () => {
 	test('formats the current year and month as YYYY-MM', () => {
@@ -9,6 +36,18 @@ describe('currentCalendarMonth', () => {
 
 	test('zero-pads single-digit months', () => {
 		expect(currentCalendarMonth(new Date(2026, 0, 5))).toBe('2026-01');
+	});
+});
+
+describe('compareCalendarMonths', () => {
+	test('orders by year then month', () => {
+		expect(compareCalendarMonths({ year: 2025, month: 12 }, { year: 2026, month: 1 })).toBeLessThan(
+			0
+		);
+		expect(compareCalendarMonths({ year: 2026, month: 9 }, { year: 2026, month: 9 })).toBe(0);
+		expect(
+			compareCalendarMonths({ year: 2026, month: 10 }, { year: 2026, month: 9 })
+		).toBeGreaterThan(0);
 	});
 });
 

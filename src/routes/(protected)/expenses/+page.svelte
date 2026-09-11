@@ -4,9 +4,8 @@
 	import { toast } from 'svelte-sonner';
 
 	import { Button } from '$lib/components/ui/button';
-	import { Field, FieldDescription, FieldLabel } from '$lib/components/ui/field';
 	import * as FileDropZone from '$lib/components/ui/file-drop-zone';
-	import { Input } from '$lib/components/ui/input';
+	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Progress } from '$lib/components/ui/progress';
 	import { currentCalendarMonth } from '$lib/utils/date';
 	import { xhr } from '$lib/utils/xhr';
@@ -97,15 +96,6 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<Field class="max-w-xs">
-		<FieldLabel for="import-month">Month to replace</FieldLabel>
-		<Input id="import-month" name="month" type="month" bind:value={month} required />
-		<FieldDescription>
-			This upload replaces your expenses for the selected month. Rows from other months in the
-			statement are ignored.
-		</FieldDescription>
-	</Field>
-
 	<FileDropZone.Root
 		{onUpload}
 		{onFileRejected}
@@ -118,7 +108,15 @@
 	</FileDropZone.Root>
 
 	{#if files.length > 0}
-		<Button class="self-end" disabled={!canUpload} onclick={uploadFiles}>Upload</Button>
+		<div class="flex items-center justify-end gap-2">
+			<MonthPicker
+				class="w-48"
+				bind:value={month}
+				max={currentCalendarMonth()}
+				ariaLabel="Month to replace"
+			/>
+			<Button disabled={!canUpload} onclick={uploadFiles}>Upload</Button>
+		</div>
 
 		<div class="flex flex-col gap-2">
 			{#each files as uploadedFile (uploadedFile.id)}

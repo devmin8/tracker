@@ -3,14 +3,14 @@ import * as v from 'valibot';
 
 import type { Database } from '$lib/server/db/create-db';
 import { expense } from '$lib/server/db/schema';
-import { calendarMonthRange } from '$lib/utils/date';
+import { CALENDAR_MONTH_PATTERN, calendarMonthRange } from '$lib/utils/date';
 
 import { parseExpenseCsv, type CleansedExpense } from './csv-util';
 
 const CalendarMonthSchema = v.pipe(
 	v.string(),
 	v.trim(),
-	v.regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Month must be YYYY-MM')
+	v.regex(CALENDAR_MONTH_PATTERN, 'Month must be YYYY-MM')
 );
 
 export type CalendarMonth = v.InferOutput<typeof CalendarMonthSchema>;
