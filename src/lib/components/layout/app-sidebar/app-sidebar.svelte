@@ -5,7 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { Logo } from '$lib/components/logo';
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { navItems } from '$lib/utils/nav';
+	import { navItems } from '$lib/components/layout/utils';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 

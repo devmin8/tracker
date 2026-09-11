@@ -24,6 +24,7 @@
 		"@internationalized/date": "^3.12.4",
 		"@lucide/svelte": "^1.42.0",
 		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-node": "^5.5.7",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@types/node": "^24",
@@ -65,5 +66,6 @@
 		"papaparse": "^5.7.0",
 		"tailwindcss": "^4.3.3",
 		"valibot": "^1.4.2"
-	}
+	},
+	"packageManager": "pnpm@12.3.4+sha512.961aa41fb077da3a04a441d9f8e15ebc0c96da8ef710b2eb67bf9ee7cb0610eabd48f1fd85f51cffe73846785fa0f87c56a3a872a1d893f8446741b5cce45457"
 }

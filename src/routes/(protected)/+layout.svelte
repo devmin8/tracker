@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { AppHeader } from '$lib/components/app-header';
-	import { AppSidebar } from '$lib/components/app-sidebar';
+	import { AppHeader, AppSidebar } from '$lib/components/layout';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 
 	let { children } = $props();

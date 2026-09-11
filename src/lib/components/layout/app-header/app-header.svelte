@@ -5,7 +5,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { ToggleTheme } from '$lib/components/toggle-theme';
-	import { breadcrumbsFor } from '$lib/utils/nav';
+	import { breadcrumbsFor } from '$lib/components/layout/utils';
 
 	const crumbs = $derived(breadcrumbsFor(page.url.pathname));
 </script>
