@@ -47,7 +47,13 @@
 			{:else}
 				<div class="text-foreground flex flex-col place-items-center justify-center gap-3">
 					<UploadIcon class="size-8" />
-					<span class="text-lg font-medium">Drop files here to upload</span>
+					<span class="text-lg font-medium">
+						{#if dragOverlayState.rootState.opts.maxFiles.current === 1}
+							Drop a file here to upload
+						{:else}
+							Drop files here to upload
+						{/if}
+					</span>
 				</div>
 			{/if}
 		</div>

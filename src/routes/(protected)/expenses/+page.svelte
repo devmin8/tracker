@@ -101,7 +101,7 @@
 		{onFileRejected}
 		maxFileSize={1 * FileDropZone.MEGABYTE}
 		accept=".csv,text/csv"
-		maxFiles={4}
+		maxFiles={1}
 		fileCount={files.length}
 	>
 		<FileDropZone.Trigger />

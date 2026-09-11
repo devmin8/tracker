@@ -15,6 +15,9 @@
 	}: FileDropZoneTriggerProps = $props();
 
 	const triggerState = useFileDropZoneTrigger();
+	const maxFiles = $derived(triggerState.rootState.opts.maxFiles.current);
+	const maxFileSize = $derived(triggerState.rootState.opts.maxFileSize.current);
+	const singleFile = $derived(maxFiles === 1);
 </script>
 
 <label
@@ -36,23 +39,27 @@
 			</div>
 			<div class="flex flex-col gap-0.5 text-center">
 				<span class="text-muted-foreground text-sm font-medium">
-					Drag 'n' drop files here, or click to select files
+					{#if singleFile}
+						Drag 'n' drop a file here, or click to select a file
+					{:else}
+						Drag 'n' drop files here, or click to select files
+					{/if}
 				</span>
-				{#if triggerState.rootState.opts.maxFiles.current || triggerState.rootState.opts.maxFileSize.current}
+				{#if maxFiles || maxFileSize}
 					<span class="text-muted-foreground/75 text-sm">
-						{#if triggerState.rootState.opts.maxFiles.current}
+						{#if maxFiles}
 							<span>
-								You can upload {triggerState.rootState.opts.maxFiles.current} files
+								You can upload {maxFiles} {maxFiles === 1 ? 'file' : 'files'}
 							</span>
 						{/if}
-						{#if triggerState.rootState.opts.maxFiles.current && triggerState.rootState.opts.maxFileSize.current}
+						{#if maxFiles && maxFileSize}
 							<span>
-								(up to {displaySize(triggerState.rootState.opts.maxFileSize.current)} each)
+								(up to {displaySize(maxFileSize)}{maxFiles === 1 ? '' : ' each'})
 							</span>
 						{/if}
-						{#if triggerState.rootState.opts.maxFileSize.current && !triggerState.rootState.opts.maxFiles.current}
+						{#if maxFileSize && !maxFiles}
 							<span>
-								Maximum size {displaySize(triggerState.rootState.opts.maxFileSize.current)}
+								Maximum size {displaySize(maxFileSize)}
 							</span>
 						{/if}
 					</span>
