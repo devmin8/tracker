@@ -23,7 +23,11 @@ export const navItems: NavItem[] = [
 	},
 	{
 		title: 'Expenses',
-		url: '/expenses'
+		url: '/expenses/list',
+		items: [
+			{ title: 'View expenses', url: '/expenses/list' },
+			{ title: 'Upload Expenses', url: '/expenses/upload' }
+		]
 	}
 ];
 
