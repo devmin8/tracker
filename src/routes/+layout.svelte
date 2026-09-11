@@ -17,5 +17,5 @@
 </svelte:head>
 
 <ModeWatcher />
-<Toaster />
+<Toaster closeButton position="bottom-center" />
 {@render children()}
