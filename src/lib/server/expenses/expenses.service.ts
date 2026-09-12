@@ -3,23 +3,27 @@ import * as v from 'valibot';
 
 import type { Database } from '$lib/server/db/create-db';
 import { expense } from '$lib/server/db/schema';
-import { CALENDAR_MONTH_PATTERN, calendarMonthRange } from '$lib/utils/date';
+import {
+	formatYearMonth,
+	parseYearMonth,
+	YEAR_MONTH_PATTERN,
+	yearMonthRange,
+	type YearMonth
+} from '$lib/utils/date';
 
 import { parseExpenseCsv, type CleansedExpense } from './csv-util';
 
-const CalendarMonthSchema = v.pipe(
+const YearMonthSchema = v.pipe(
 	v.string(),
 	v.trim(),
-	v.regex(CALENDAR_MONTH_PATTERN, 'Month must be YYYY-MM')
+	v.regex(YEAR_MONTH_PATTERN, 'Month must be YYYY-MM')
 );
-
-export type CalendarMonth = v.InferOutput<typeof CalendarMonthSchema>;
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024;
 const INSERT_BATCH_SIZE = 500;
 
 type ImportError = { ok: false; message: string; status: 400 };
-type ParsedImport = { month: string; expenses: CleansedExpense[] };
+type ParsedImport = { month: YearMonth; expenses: CleansedExpense[] };
 
 export type ImportResult = { ok: true; rowCount: number } | ImportError;
 export type ParseImportResult = ({ ok: true } & ParsedImport) | ImportError;
@@ -33,9 +37,9 @@ export async function parseImportedFile(
 		return csvFile;
 	}
 
-	const calendarMonth = validateMonth(month);
-	if (!calendarMonth.ok) {
-		return calendarMonth;
+	const yearMonth = validateMonth(month);
+	if (!yearMonth.ok) {
+		return yearMonth;
 	}
 
 	const parsed = parseExpenseCsv(await csvFile.file.text());
@@ -43,7 +47,7 @@ export async function parseImportedFile(
 		return { ok: false, message: 'The CSV could not be parsed', status: 400 };
 	}
 
-	const { start, end } = calendarMonthRange(calendarMonth.month);
+	const { start, end } = yearMonthRange(yearMonth.month);
 	const expenses = parsed.expenses.filter(
 		(row) => row.expenseDate >= start && row.expenseDate < end
 	);
@@ -55,7 +59,7 @@ export async function parseImportedFile(
 		};
 	}
 
-	return { ok: true, month: calendarMonth.month, expenses };
+	return { ok: true, month: yearMonth.month, expenses };
 }
 
 export async function importExpenses(
@@ -84,9 +88,9 @@ export type ListedExpense = {
 export async function listMonthExpenses(
 	db: Database,
 	userId: string,
-	month: string
+	month: YearMonth
 ): Promise<ListedExpense[]> {
-	const { start, end } = calendarMonthRange(month);
+	const { start, end } = yearMonthRange(month);
 
 	return db
 		.select({
@@ -127,14 +131,14 @@ function validateCsvFile(file: FormDataEntryValue | null): CsvResult {
 	return { ok: true, file };
 }
 
-type MonthResult = { ok: true; month: string } | ImportError;
+type MonthResult = { ok: true; month: YearMonth } | ImportError;
 
 function validateMonth(value: FormDataEntryValue | null): MonthResult {
 	if (typeof value !== 'string' || value.trim() === '') {
 		return { ok: false, message: 'A month is required', status: 400 };
 	}
 
-	const result = v.safeParse(CalendarMonthSchema, value);
+	const result = v.safeParse(YearMonthSchema, value);
 	if (!result.success) {
 		return {
 			ok: false,
@@ -143,11 +147,16 @@ function validateMonth(value: FormDataEntryValue | null): MonthResult {
 		};
 	}
 
-	return { ok: true, month: result.output };
+	const parsed = parseYearMonth(result.output);
+	if (!parsed) {
+		return { ok: false, message: 'Month must be YYYY-MM', status: 400 };
+	}
+
+	return { ok: true, month: formatYearMonth(parsed) };
 }
 
 async function saveMonthExpenses(db: Database, userId: string, { month, expenses }: ParsedImport) {
-	const { start, end } = calendarMonthRange(month);
+	const { start, end } = yearMonthRange(month);
 	const importedAt = new Date();
 
 	await db.transaction(async (tx) => {

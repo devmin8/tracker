@@ -8,7 +8,7 @@
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Switch } from '$lib/components/ui/switch';
 	import * as Table from '$lib/components/ui/table';
-	import { currentCalendarMonth } from '$lib/utils/date';
+	import { currentYearMonth } from '$lib/utils/date';
 
 	let { data } = $props();
 
@@ -120,7 +120,7 @@
 			<MonthPicker
 				class="w-48"
 				bind:value={() => data.month, setMonth}
-				max={currentCalendarMonth()}
+				max={currentYearMonth()}
 				ariaLabel="Month to view"
 			/>
 			<div class="flex items-center gap-2">

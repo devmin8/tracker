@@ -5,12 +5,12 @@
 
 	import { cn } from '$lib/utils/cn';
 	import {
-		compareCalendarMonths,
-		currentCalendarMonthParts,
-		formatCalendarMonth,
+		compareYearMonths,
+		currentYearMonthParts,
+		formatYearMonth,
 		MONTH_NAMES,
 		MONTH_NAMES_SHORT,
-		parseCalendarMonth
+		parseYearMonth
 	} from '$lib/utils/date';
 
 	type MonthPickerProps = {
@@ -39,12 +39,12 @@
 	}: MonthPickerProps = $props();
 
 	let open = $state(false);
-	let viewYear = $state(parseCalendarMonth(value)?.year ?? currentCalendarMonthParts().year);
+	let viewYear = $state(parseYearMonth(value)?.year ?? currentYearMonthParts().year);
 	let contentEl = $state<HTMLElement | null>(null);
 
-	const selected = $derived(parseCalendarMonth(value));
-	const minBound = $derived(parseCalendarMonth(min));
-	const maxBound = $derived(parseCalendarMonth(max));
+	const selected = $derived(parseYearMonth(value));
+	const minBound = $derived(parseYearMonth(min));
+	const maxBound = $derived(parseYearMonth(max));
 	const displayValue = $derived(
 		selected ? `${MONTH_NAMES[selected.month - 1]} ${selected.year}` : placeholder
 	);
@@ -54,14 +54,14 @@
 	function isOutOfRange(year: number, month: number) {
 		const candidate = { year, month };
 		return Boolean(
-			(minBound && compareCalendarMonths(candidate, minBound) < 0) ||
-			(maxBound && compareCalendarMonths(candidate, maxBound) > 0)
+			(minBound && compareYearMonths(candidate, minBound) < 0) ||
+			(maxBound && compareYearMonths(candidate, maxBound) > 0)
 		);
 	}
 
 	function onOpenChange(isOpen: boolean) {
 		if (isOpen) {
-			viewYear = selected?.year ?? currentCalendarMonthParts().year;
+			viewYear = selected?.year ?? currentYearMonthParts().year;
 		}
 	}
 
@@ -78,20 +78,20 @@
 	function selectMonth(month: number) {
 		if (isOutOfRange(viewYear, month)) return;
 
-		value = formatCalendarMonth({ year: viewYear, month });
+		value = formatYearMonth({ year: viewYear, month });
 		open = false;
 	}
 
 	function isCurrentMonthDisabled() {
-		const current = currentCalendarMonthParts();
+		const current = currentYearMonthParts();
 		return isOutOfRange(current.year, current.month);
 	}
 
 	function jumpToCurrentMonth() {
-		const current = currentCalendarMonthParts();
+		const current = currentYearMonthParts();
 		if (isOutOfRange(current.year, current.month)) return;
 
-		value = formatCalendarMonth(current);
+		value = formatYearMonth(current);
 		viewYear = current.year;
 		open = false;
 	}
