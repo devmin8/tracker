@@ -49,7 +49,8 @@
 					<span class="text-muted-foreground/75 text-sm">
 						{#if maxFiles}
 							<span>
-								You can upload {maxFiles} {maxFiles === 1 ? 'file' : 'files'}
+								You can upload {maxFiles}
+								{maxFiles === 1 ? 'file' : 'files'}
 							</span>
 						{/if}
 						{#if maxFiles && maxFileSize}
