@@ -5,7 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { Logo } from '$lib/components/logo';
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { navItems } from '$lib/components/layout/utils';
+	import { isNavGroup, navItems } from '$lib/components/layout/utils';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 
@@ -35,15 +35,15 @@
 			<Sidebar.Menu>
 				{#each navItems as item (item.title)}
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton class="font-medium" isActive={!item.items && pathname === item.url}>
-							{#snippet child({ props })}
-								<a href={resolve(item.url)} {...props}>
-									{item.title}
-								</a>
-							{/snippet}
-						</Sidebar.MenuButton>
+						{#if isNavGroup(item)}
+							<Sidebar.MenuButton
+								class="font-medium hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground"
+							>
+								{#snippet child({ props })}
+									<span {...props}>{item.title}</span>
+								{/snippet}
+							</Sidebar.MenuButton>
 
-						{#if item.items?.length}
 							<Sidebar.MenuSub>
 								{#each item.items as subItem (subItem.title)}
 									<Sidebar.MenuSubItem>
@@ -55,6 +55,12 @@
 									</Sidebar.MenuSubItem>
 								{/each}
 							</Sidebar.MenuSub>
+						{:else}
+							<Sidebar.MenuButton class="font-medium" isActive={pathname === item.url}>
+								{#snippet child({ props })}
+									<a href={resolve(item.url)} {...props}>{item.title}</a>
+								{/snippet}
+							</Sidebar.MenuButton>
 						{/if}
 					</Sidebar.MenuItem>
 				{/each}

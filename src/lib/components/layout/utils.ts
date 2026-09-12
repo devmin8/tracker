@@ -10,11 +10,23 @@ export type NavSubItem = {
 	url: Pathname;
 };
 
-export type NavItem = {
+type NavLeafItem = {
 	title: string;
 	url: Pathname;
-	items?: NavSubItem[];
+	items?: never;
 };
+
+type NavGroupItem = {
+	title: string;
+	items: readonly [NavSubItem, ...NavSubItem[]];
+	url?: never;
+};
+
+export type NavItem = NavLeafItem | NavGroupItem;
+
+export function isNavGroup(item: NavItem): item is NavGroupItem {
+	return item.items !== undefined;
+}
 
 export const navItems: NavItem[] = [
 	{
@@ -23,7 +35,6 @@ export const navItems: NavItem[] = [
 	},
 	{
 		title: 'Expenses',
-		url: '/expenses/list',
 		items: [
 			{ title: 'View expenses', url: '/expenses/list' },
 			{ title: 'Upload Expenses', url: '/expenses/upload' }
@@ -33,11 +44,13 @@ export const navItems: NavItem[] = [
 
 export function breadcrumbsFor(pathname: string): Crumb[] {
 	for (const item of navItems) {
-		if (item.items?.length) {
+		if (isNavGroup(item)) {
 			const subItem = item.items.find((entry) => entry.url === pathname);
 			if (subItem) {
-				return [{ label: item.title, href: item.url }, { label: subItem.title }];
+				return [{ label: item.title }, { label: subItem.title }];
 			}
+
+			continue;
 		}
 
 		if (item.url === pathname) {
