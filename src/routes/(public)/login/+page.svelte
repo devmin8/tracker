@@ -1,11 +1,11 @@
 <script lang="ts">
+	import * as v from 'valibot';
+
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { authClient } from '$lib/auth-client';
-	import { LoginForm } from '$lib/components/login';
+	import { LoginForm, LoginSchema } from '$lib/components/login';
 	import { ToggleTheme } from '$lib/components/toggle-theme';
-	import { LoginSchema } from '$lib/schemas/auth';
-	import * as v from 'valibot';
 
 	import type { PageProps } from './$types';
 
