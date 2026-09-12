@@ -1,3 +1,5 @@
+import { format, isValid, parse } from 'date-fns';
+
 export type YearMonthParts = {
 	year: number;
 	month: number;
@@ -90,4 +92,19 @@ export function yearMonthRange(month: YearMonth) {
 		start: `${formatYearMonth(parsed)}-01`,
 		end: `${formatYearMonth(next)}-01`
 	};
+}
+
+const DATE_FORMATS = ['yyyy-MM-dd', 'MM/dd/yyyy'] as const;
+
+export function formatDateString(value: string) {
+	const trimmed = value.trim();
+
+	for (const dateFormat of DATE_FORMATS) {
+		const date = parse(trimmed, dateFormat, new Date(0));
+		if (isValid(date)) {
+			return format(date, 'yyyy-MM-dd');
+		}
+	}
+
+	return null;
 }

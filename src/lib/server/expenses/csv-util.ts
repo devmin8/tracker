@@ -12,8 +12,10 @@
 //   PRES/XXXX   _T -> PRES
 //   SEND E-TFR ***abc -> SEND E-TFR
 
-import { format, isValid, parse } from 'date-fns';
 import Papa from 'papaparse';
+
+import { toCents } from '$lib/utils/amount';
+import { formatDateString } from '$lib/utils/date';
 
 export type CleansedExpense = {
 	expenseDate: string;
@@ -25,8 +27,6 @@ export type CleansedExpense = {
 type ParseSuccess = { ok: true; expenses: CleansedExpense[] };
 type ParseFailure = { ok: false };
 
-const DATE_FORMATS = ['yyyy-MM-dd', 'MM/dd/yyyy'] as const;
-const DOLLARS = /^-?\d+(\.\d{1,2})?$/;
 const INTERNAL_TRANSFER = /^(PTS|SSV)\b/i;
 const STRIP_MARKERS = ['#', '_', '***'] as const;
 
@@ -52,7 +52,7 @@ function toExpense(cols: string[]): CleansedExpense | null {
 	const [rawDate = '', rawDescription = '', rawAmount = ''] = cols;
 	const description = rawDescription.trim();
 	const amount = toCents(rawAmount);
-	const expenseDate = parseExpenseDate(rawDate);
+	const expenseDate = formatDateString(rawDate);
 
 	if (amount === null) return null;
 	if (!description || INTERNAL_TRANSFER.test(description)) return null;
@@ -80,25 +80,4 @@ function refineDescription(description: string): string {
 
 	refined = refined.replace(/\s+/g, ' ').trim();
 	return refined || description;
-}
-
-function toCents(value: string): number | null {
-	const dollars = value.trim().replace(/[$,]/g, '');
-	if (!DOLLARS.test(dollars)) {
-		return null;
-	}
-	return Math.round(Number(dollars) * 100);
-}
-
-function parseExpenseDate(value: string): string | null {
-	const trimmed = value.trim();
-
-	for (const dateFormat of DATE_FORMATS) {
-		const date = parse(trimmed, dateFormat, new Date(0));
-		if (isValid(date)) {
-			return format(date, 'yyyy-MM-dd');
-		}
-	}
-
-	return null;
 }

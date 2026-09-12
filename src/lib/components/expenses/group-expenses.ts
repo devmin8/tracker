@@ -3,7 +3,7 @@ export type Expense = {
 	expenseDate: string;
 	amount: number;
 	description: string;
-	refinedDescription: string | null;
+	refinedDescription: string;
 };
 
 export type ExpenseGroup = {
@@ -16,8 +16,7 @@ export function groupExpenses(expenses: Expense[]): ExpenseGroup[] {
 	const groups = new Map<string, ExpenseGroup>();
 
 	for (const expense of expenses) {
-		const refinedDescription = expense.refinedDescription || expense.description;
-		const group = groups.get(refinedDescription);
+		const group = groups.get(expense.refinedDescription);
 
 		if (group) {
 			group.count += 1;
@@ -25,7 +24,11 @@ export function groupExpenses(expenses: Expense[]): ExpenseGroup[] {
 			continue;
 		}
 
-		groups.set(refinedDescription, { refinedDescription, count: 1, amount: expense.amount });
+		groups.set(expense.refinedDescription, {
+			refinedDescription: expense.refinedDescription,
+			count: 1,
+			amount: expense.amount
+		});
 	}
 
 	return Array.from(groups.values());

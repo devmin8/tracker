@@ -7,7 +7,7 @@ function expense(overrides: Partial<Expense> & Pick<Expense, 'id'>): Expense {
 		expenseDate: '2026-09-01',
 		amount: 100,
 		description: 'Coffee',
-		refinedDescription: null,
+		refinedDescription: 'Coffee',
 		...overrides
 	};
 }
@@ -28,14 +28,5 @@ describe('groupExpenses', () => {
 			{ refinedDescription: 'Coffee', count: 2, amount: 650 },
 			{ refinedDescription: 'Ride', count: 1, amount: 1200 }
 		]);
-	});
-
-	test('falls back to the raw description when refined is missing', () => {
-		expect(
-			groupExpenses([
-				expense({ id: '1', description: 'Coffee', refinedDescription: null, amount: 250 }),
-				expense({ id: '2', description: 'Coffee', refinedDescription: '', amount: 150 })
-			])
-		).toEqual([{ refinedDescription: 'Coffee', count: 2, amount: 400 }]);
 	});
 });
