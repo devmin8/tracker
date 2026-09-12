@@ -1,3 +1,5 @@
+import { safeTry } from './safe-try';
+
 type XhrOptions = {
 	url: string;
 	method?: string;
@@ -14,12 +16,7 @@ export function xhr<T>({ url, method = 'POST', body = null, onProgress }: XhrOpt
 		});
 
 		request.addEventListener('load', () => {
-			let data: { message?: string } | null = null;
-			try {
-				data = JSON.parse(request.responseText);
-			} catch {
-				// empty or non-JSON body
-			}
+			const data = safeTry(() => JSON.parse(request.responseText) as { message?: string }, null);
 
 			if (request.status >= 200 && request.status < 300) {
 				resolve(data as T);
