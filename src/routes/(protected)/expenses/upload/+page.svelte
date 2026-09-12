@@ -7,7 +7,7 @@
 	import * as FileDropZone from '$lib/components/ui/file-drop-zone';
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Progress } from '$lib/components/ui/progress';
-	import { currentCalendarMonth } from '$lib/utils/date';
+	import { currentYearMonth } from '$lib/utils/date';
 	import { xhr } from '$lib/utils/xhr';
 
 	type UploadStatus = 'pending' | 'uploading' | 'error';
@@ -20,7 +20,7 @@
 	};
 
 	let files = $state<UploadedFile[]>([]);
-	let month = $state(currentCalendarMonth());
+	let month = $state(currentYearMonth());
 
 	const isUploading = $derived(files.some((file) => file.status === 'uploading'));
 
@@ -112,7 +112,7 @@
 			<MonthPicker
 				class="w-48"
 				bind:value={month}
-				max={currentCalendarMonth()}
+				max={currentYearMonth()}
 				ariaLabel="Month to replace"
 			/>
 			<Button disabled={!canUpload} onclick={uploadFiles}>Upload</Button>
