@@ -61,6 +61,11 @@ export function currentCalendarMonth(now = new Date()) {
 	return formatCalendarMonth(currentCalendarMonthParts(now));
 }
 
+export function resolveCalendarMonth(value: string | undefined, now = new Date()) {
+	const parsed = parseCalendarMonth(value);
+	return parsed ? formatCalendarMonth(parsed) : currentCalendarMonth(now);
+}
+
 export function compareCalendarMonths(a: CalendarMonthParts, b: CalendarMonthParts) {
 	return a.year - b.year || a.month - b.month;
 }

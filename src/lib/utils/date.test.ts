@@ -5,7 +5,8 @@ import {
 	compareCalendarMonths,
 	currentCalendarMonth,
 	formatCalendarMonth,
-	parseCalendarMonth
+	parseCalendarMonth,
+	resolveCalendarMonth
 } from './date';
 
 describe('parseCalendarMonth', () => {
@@ -36,6 +37,18 @@ describe('currentCalendarMonth', () => {
 
 	test('zero-pads single-digit months', () => {
 		expect(currentCalendarMonth(new Date(2026, 0, 5))).toBe('2026-01');
+	});
+});
+
+describe('resolveCalendarMonth', () => {
+	test('keeps a valid calendar month', () => {
+		expect(resolveCalendarMonth('2026-07')).toBe('2026-07');
+	});
+
+	test('falls back to the current month when the value is missing or invalid', () => {
+		const now = new Date(2026, 8, 11);
+		expect(resolveCalendarMonth(undefined, now)).toBe('2026-09');
+		expect(resolveCalendarMonth('2026-13', now)).toBe('2026-09');
 	});
 });
 

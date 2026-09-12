@@ -1,4 +1,4 @@
-import { and, eq, gte, lt } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
 import * as v from 'valibot';
 
 import type { Database } from '$lib/server/db/create-db';
@@ -71,6 +71,40 @@ export async function importExpenses(
 
 	await saveMonthExpenses(db, userId, parsed);
 	return { ok: true, rowCount: parsed.expenses.length };
+}
+
+export type ListedExpense = {
+	id: string;
+	expenseDate: string;
+	amount: number;
+	description: string;
+	refinedDescription: string | null;
+};
+
+export async function listMonthExpenses(
+	db: Database,
+	userId: string,
+	month: string
+): Promise<ListedExpense[]> {
+	const { start, end } = calendarMonthRange(month);
+
+	return db
+		.select({
+			id: expense.id,
+			expenseDate: expense.expenseDate,
+			amount: expense.amount,
+			description: expense.description,
+			refinedDescription: expense.refinedDescription
+		})
+		.from(expense)
+		.where(
+			and(
+				eq(expense.createdBy, userId),
+				gte(expense.expenseDate, start),
+				lt(expense.expenseDate, end)
+			)
+		)
+		.orderBy(desc(expense.expenseDate), asc(expense.description));
 }
 
 // == local functions ==
