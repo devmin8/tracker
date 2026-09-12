@@ -2,8 +2,9 @@ import type { Handle } from '@sveltejs/kit';
 import { error, redirect } from '@sveltejs/kit';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
-import { auth, loginUrl } from '$lib/server/auth';
 import { building } from '$app/env';
+import { auth, loginUrl } from '$lib/server/auth';
+import { safeTry } from '$lib/utils/safe-try';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Fetch current session from Better Auth
@@ -18,7 +19,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	if (!building) {
-		event.request.headers.set('x-client-ip', event.getClientAddress());
+		// Vite can throw on the first request (no socket yet); prod uses getClientAddress via ADDRESS_HEADER.
+		event.request.headers.set('x-client-ip', safeTry(event.getClientAddress, '127.0.0.1'));
 	}
 
 	// route.id is null when SvelteKit matched no file — /api/auth/* (hook-mounted) and unmatched 404s.
