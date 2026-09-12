@@ -9,6 +9,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import * as Table from '$lib/components/ui/table';
 	import { currentYearMonth } from '$lib/utils/date';
+	import { formatCents } from '$lib/utils/amount';
 
 	let { data } = $props();
 
@@ -41,10 +42,6 @@
 
 		return Array.from(groups.values());
 	});
-
-	function formatCents(cents: number) {
-		return `${cents < 0 ? '-' : ''}$${(Math.abs(cents) / 100).toFixed(2)}`;
-	}
 
 	function setMonth(month: string) {
 		if (month === data.month) return;
