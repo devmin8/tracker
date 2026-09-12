@@ -12,7 +12,9 @@
 
 	let { data } = $props();
 
-	let groupExpenses = $state(false);
+	let groupExpenses = $state(true);
+
+	const total = $derived(data.expenses.reduce((sum, expense) => sum + expense.amount, 0));
 
 	const grouped = $derived.by(() => {
 		const groups = new SvelteMap<
@@ -46,7 +48,7 @@
 
 	function setMonth(month: string) {
 		if (month === data.month) return;
-		void goto(resolve(`/expenses/list?month=${month}`), {
+		goto(resolve(`/expenses/list?month=${month}`), {
 			replaceState: true,
 			keepFocus: true,
 			noScroll: true
@@ -109,16 +111,22 @@
 {/snippet}
 
 <div class="flex flex-col gap-4">
-	<div class="flex items-center justify-end gap-3">
-		<MonthPicker
-			class="w-48"
-			bind:value={() => data.month, setMonth}
-			max={currentCalendarMonth()}
-			ariaLabel="Month to view"
-		/>
+	<div class="flex items-center justify-between gap-3">
 		<div class="flex items-center gap-2">
-			<Switch id="group-expenses" bind:checked={groupExpenses} />
-			<Label for="group-expenses">Group expenses</Label>
+			<span class="text-muted-foreground text-sm font-medium">Total expenses</span>
+			<span class="text-2xl font-semibold tabular-nums">{formatCents(total)}</span>
+		</div>
+		<div class="flex items-center gap-3">
+			<MonthPicker
+				class="w-48"
+				bind:value={() => data.month, setMonth}
+				max={currentCalendarMonth()}
+				ariaLabel="Month to view"
+			/>
+			<div class="flex items-center gap-2">
+				<Switch id="group-expenses" bind:checked={groupExpenses} />
+				<Label for="group-expenses">Group expenses</Label>
+			</div>
 		</div>
 	</div>
 
