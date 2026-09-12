@@ -82,7 +82,7 @@ export type ListedExpense = {
 	expenseDate: string;
 	amount: number;
 	description: string;
-	refinedDescription: string | null;
+	refinedDescription: string;
 };
 
 export async function listMonthExpenses(

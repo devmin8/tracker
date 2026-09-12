@@ -16,7 +16,7 @@ export const expense = sqliteTable(
 		// lets store in cents
 		amount: integer('amount').notNull(),
 		description: text('description').notNull(),
-		refinedDescription: text('refined_description'),
+		refinedDescription: text('refined_description').notNull(),
 		comments: text('comments'),
 		tag: text('tag'),
 		createdBy: text('created_by')

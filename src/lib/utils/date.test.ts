@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
 	compareYearMonths,
 	currentYearMonth,
+	formatDateString,
 	formatYearMonth,
 	parseYearMonth,
 	resolveYearMonth,
@@ -88,5 +89,20 @@ describe('yearMonthRange', () => {
 			start: '2026-12-01',
 			end: '2027-01-01'
 		});
+	});
+});
+
+describe('formatDateString', () => {
+	test('normalizes supported date formats to YYYY-MM-DD', () => {
+		expect(formatDateString('2026-03-23')).toBe('2026-03-23');
+		expect(formatDateString('07/18/2026')).toBe('2026-07-18');
+		expect(formatDateString(' 07/18/2026 ')).toBe('2026-07-18');
+	});
+
+	test('rejects unsupported or invalid dates', () => {
+		expect(formatDateString('')).toBeNull();
+		expect(formatDateString('not-a-date')).toBeNull();
+		expect(formatDateString('18/07/2026')).toBeNull();
+		expect(formatDateString('2026-13-01')).toBeNull();
 	});
 });
