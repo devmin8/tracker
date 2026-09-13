@@ -18,6 +18,7 @@
 		placeholder?: string;
 		searchPlaceholder?: string;
 		emptyText?: string;
+		clearLabel?: string;
 		disabled?: boolean;
 		id?: string;
 		class?: string;
@@ -29,6 +30,7 @@
 		placeholder = 'Select…',
 		searchPlaceholder = 'Search…',
 		emptyText = 'No results found.',
+		clearLabel,
 		disabled = false,
 		id,
 		class: className
@@ -48,6 +50,11 @@
 
 	function selectItem(item: ComboboxItem) {
 		value = item.value;
+		closeAndFocusTrigger();
+	}
+
+	function clearSelection() {
+		value = undefined;
 		closeAndFocusTrigger();
 	}
 </script>
@@ -77,6 +84,10 @@
 			<Command.Input placeholder={searchPlaceholder} />
 			<Command.List>
 				<Command.Empty>{emptyText}</Command.Empty>
+				{#if clearLabel && value}
+					<Command.Item value={clearLabel} onSelect={clearSelection}>{clearLabel}</Command.Item>
+					<Command.Separator />
+				{/if}
 				<Command.Group>
 					{#each items as item (item.value)}
 						<Command.Item
