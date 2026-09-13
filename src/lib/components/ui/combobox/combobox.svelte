@@ -1,5 +1,4 @@
 <script lang="ts">
-	import CheckIcon from '@lucide/svelte/icons/check';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import { tick } from 'svelte';
 
@@ -83,9 +82,9 @@
 						<Command.Item
 							value={item.value}
 							keywords={[item.label]}
+							data-checked={value === item.value ? true : undefined}
 							onSelect={() => selectItem(item)}
 						>
-							<CheckIcon class={cn(value !== item.value && 'text-transparent')} />
 							{item.label}
 						</Command.Item>
 					{/each}
