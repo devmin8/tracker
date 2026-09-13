@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as v from 'valibot';
 
+	import { AddExpenseSchema } from '$lib/schemas/add-expense.schema';
 	import { Button } from '$lib/components/ui/button';
 	import { Combobox } from '$lib/components/ui/combobox';
 	import { DatePicker } from '$lib/components/ui/date-picker';
@@ -9,18 +10,18 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { todayDateString } from '$lib/utils/date';
+	import type { FormValues } from '$lib/utils/form';
 
-	import {
-		AddExpenseFormSchema,
-		type AddExpenseInput,
-		type ExpenseTagOption
-	} from './add-expense-form.schema';
+	export type ExpenseTagOption = {
+		id: string;
+		name: string;
+	};
 
 	type Props = {
 		tags: ExpenseTagOption[];
 		submitting?: boolean;
 		errorMessage?: string;
-		onsubmit: (input: AddExpenseInput) => Promise<void>;
+		onsubmit: (input: FormValues) => Promise<void>;
 	};
 
 	let { tags, submitting = false, errorMessage, onsubmit }: Props = $props();
@@ -35,14 +36,15 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
-		const result = v.safeParse(AddExpenseFormSchema, Object.fromEntries(new FormData(form)));
+		const input = Object.fromEntries(new FormData(form));
+		const result = v.safeParse(AddExpenseSchema, input);
 		if (!result.success) {
 			validationMessage = result.issues[0]?.message ?? 'Please check the expense details';
 			return;
 		}
 
 		validationMessage = undefined;
-		await onsubmit(result.output);
+		await onsubmit(input);
 	}
 </script>
 

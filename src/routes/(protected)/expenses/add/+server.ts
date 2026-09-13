@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import * as v from 'valibot';
 
-import { AddExpenseInputSchema } from '$lib/expenses/add-expense-input.schema';
+import { AddExpenseSchema } from '$lib/schemas/add-expense.schema';
 import { db } from '$lib/server/db';
 import { createExpense } from '$lib/server/expenses';
 import { badRequest, protectedApi, readJson, validationError } from '$lib/server/http';
@@ -12,7 +12,7 @@ export const POST = protectedApi(async ({ request }, user) => {
 		return badRequest('Please check the expense details');
 	}
 
-	const parsed = v.safeParse(AddExpenseInputSchema, body.result);
+	const parsed = v.safeParse(AddExpenseSchema, body.result);
 	if (!parsed.success) {
 		return validationError(parsed.issues, 'Please check the expense details');
 	}
