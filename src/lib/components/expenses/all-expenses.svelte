@@ -2,10 +2,13 @@
 	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
 
+	import type { ExpenseAction } from './expense-actions';
 	import ExpenseActions from './expense-actions.svelte';
 	import type { Expense } from './group-expenses';
 
-	let { expenses }: { expenses: Expense[] } = $props();
+	type Props = { expenses: Expense[]; onAction: (action: ExpenseAction, expense: Expense) => void };
+
+	let { expenses, onAction }: Props = $props();
 </script>
 
 <Table.Root>
@@ -26,7 +29,7 @@
 				<Table.Cell class="font-medium">{expense.description}</Table.Cell>
 				<Table.Cell class="text-end">{formatCents(expense.amount)}</Table.Cell>
 				<Table.Cell class="text-end">
-					<ExpenseActions />
+					<ExpenseActions onAction={(action) => onAction(action, expense)} />
 				</Table.Cell>
 			</Table.Row>
 		{:else}

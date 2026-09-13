@@ -3,6 +3,14 @@
 
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+
+	import type { ExpenseAction } from './expense-actions';
+
+	type Props = {
+		onAction: (action: ExpenseAction) => void;
+	};
+
+	let { onAction }: Props = $props();
 </script>
 
 <DropdownMenu.Root>
@@ -15,8 +23,11 @@
 		{/snippet}
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="end" class="w-40">
-		<DropdownMenu.Item variant="destructive">Delete</DropdownMenu.Item>
-		<DropdownMenu.Item>Update tags</DropdownMenu.Item>
-		<DropdownMenu.Item>Update expense</DropdownMenu.Item>
+		<DropdownMenu.Item variant="destructive" onSelect={() => onAction('delete')}>
+			Delete
+		</DropdownMenu.Item>
+		<DropdownMenu.Item onSelect={() => onAction('update-tags')}>Update tags</DropdownMenu.Item>
+		<DropdownMenu.Item onSelect={() => onAction('update-expense')}>Update expense</DropdownMenu.Item
+		>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>

@@ -1,17 +1,31 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
+
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
-	import { AllExpenses, GroupedExpense, groupExpenses } from '$lib/components/expenses';
+	import {
+		AllExpenses,
+		GroupedExpense,
+		groupExpenses,
+		type ExpenseAction
+	} from '$lib/components/expenses';
+	import { UpdateTagsForm } from '$lib/components/tags';
+	import type { UpdateTagsInput } from '$lib/components/tags/update-tags-form.schema';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import { Label } from '$lib/components/ui/label';
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Switch } from '$lib/components/ui/switch';
 	import { formatCents } from '$lib/utils/amount';
 	import { currentYearMonth } from '$lib/utils/date';
+	import { request } from '$lib/utils/request';
 
 	let { data } = $props();
 
 	let grouped = $state(true);
+	let taggingDescription = $state<string | undefined>();
+	let submitting = $state(false);
+	let errorMessage = $state<string | undefined>();
 
 	const total = $derived(data.expenses.reduce((sum, expense) => sum + expense.amount, 0));
 
@@ -24,6 +38,43 @@
 			keepFocus: true,
 			noScroll: true
 		});
+	}
+
+	function onAction(action: ExpenseAction, target: { refinedDescription: string }) {
+		if (action !== 'update-tags') return;
+		taggingDescription = target.refinedDescription;
+		errorMessage = undefined;
+	}
+
+	function setDialogOpen(open: boolean) {
+		if (open) return;
+		taggingDescription = undefined;
+		errorMessage = undefined;
+	}
+
+	async function onsubmit(input: UpdateTagsInput) {
+		submitting = true;
+		errorMessage = undefined;
+
+		const outcome = await request('/expenses/tags', {
+			method: 'POST',
+			body: new URLSearchParams({
+				name: input.name,
+				refinedDescription: input.refinedDescription
+			})
+		});
+
+		if (outcome.ok) {
+			taggingDescription = undefined;
+			toast.success('Tag created');
+		} else {
+			errorMessage =
+				outcome.error.kind === 'network'
+					? 'Unable to save the tag. Check your connection and try again.'
+					: outcome.error.message;
+		}
+
+		submitting = false;
 	}
 </script>
 
@@ -48,8 +99,19 @@
 	</div>
 
 	{#if grouped}
-		<GroupedExpense {groups} />
+		<GroupedExpense {groups} {onAction} />
 	{:else}
-		<AllExpenses expenses={data.expenses} />
+		<AllExpenses expenses={data.expenses} {onAction} />
 	{/if}
 </div>
+
+<Dialog.Root bind:open={() => taggingDescription !== undefined, setDialogOpen}>
+	{#if taggingDescription}
+		<UpdateTagsForm
+			refinedDescription={taggingDescription}
+			{submitting}
+			{errorMessage}
+			{onsubmit}
+		/>
+	{/if}
+</Dialog.Root>
