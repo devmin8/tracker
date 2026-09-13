@@ -1,10 +1,14 @@
 import { and, asc, eq } from 'drizzle-orm';
 
-import type { UpdateTagsInput } from '$lib/components/tags/update-tags-form.schema';
 import type { Database } from '$lib/server/db/create-db';
 import { descriptionTag, tag } from '$lib/server/db/schema';
 
 type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+type UpdateTagsInput = {
+	name: string;
+	nameKey: string;
+	refinedDescription: string;
+};
 
 export type ListedTag = {
 	id: string;
