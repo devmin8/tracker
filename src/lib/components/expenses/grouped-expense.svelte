@@ -29,7 +29,7 @@
 	<Table.Body>
 		{#each groups as group (group.refinedDescription)}
 			<Table.Row>
-				<Table.Cell class="font-medium">{group.refinedDescription}</Table.Cell>
+				<Table.Cell class="lowercase">{group.refinedDescription}</Table.Cell>
 				<Table.Cell>
 					<Badge variant={group.tag ? 'default' : 'secondary'}>
 						{group.tag ?? 'Unverified'}
