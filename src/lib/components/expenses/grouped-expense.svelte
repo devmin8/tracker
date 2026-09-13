@@ -2,10 +2,15 @@
 	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
 
+	import type { ExpenseAction } from './expense-actions';
 	import ExpenseActions from './expense-actions.svelte';
 	import type { ExpenseGroup } from './group-expenses';
 
-	let { groups }: { groups: ExpenseGroup[] } = $props();
+	let {
+		groups,
+		onAction
+	}: { groups: ExpenseGroup[]; onAction: (action: ExpenseAction, group: ExpenseGroup) => void } =
+		$props();
 </script>
 
 <Table.Root>
@@ -26,7 +31,7 @@
 				<Table.Cell class="text-end">{group.count}</Table.Cell>
 				<Table.Cell class="text-end">{formatCents(group.amount)}</Table.Cell>
 				<Table.Cell class="text-end">
-					<ExpenseActions />
+					<ExpenseActions onAction={(action) => onAction(action, group)} />
 				</Table.Cell>
 			</Table.Row>
 		{:else}
