@@ -7,13 +7,16 @@
 	import ExpenseActions from './expense-actions.svelte';
 	import type { Expense } from './group-expenses';
 
-	type Props = { expenses: Expense[]; onAction: (action: ExpenseAction, expense: Expense) => void };
+	type Props = {
+		expenses: Expense[];
+		onAction: (action: ExpenseAction, expense: Expense) => void;
+	};
 
 	let { expenses, onAction }: Props = $props();
 </script>
 
-<Table.Root>
-	<Table.Header>
+<Table.Root containerClass="min-h-0 flex-1 overflow-y-auto">
+	<Table.Header sticky>
 		<Table.Row>
 			<Table.Head>Date</Table.Head>
 			<Table.Head>Description</Table.Head>
@@ -28,7 +31,7 @@
 		{#each expenses as expense (expense.id)}
 			<Table.Row>
 				<Table.Cell>{expense.expenseDate}</Table.Cell>
-				<Table.Cell class="font-medium">{expense.description}</Table.Cell>
+				<Table.Cell class="lowercase">{expense.description}</Table.Cell>
 				<Table.Cell>
 					<Badge variant={expense.tag ? 'default' : 'secondary'}>
 						{expense.tag ?? 'Unverified'}
