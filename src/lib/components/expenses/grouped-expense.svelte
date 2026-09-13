@@ -7,15 +7,16 @@
 	import ExpenseActions from './expense-actions.svelte';
 	import type { ExpenseGroup } from './group-expenses';
 
-	let {
-		groups,
-		onAction
-	}: { groups: ExpenseGroup[]; onAction: (action: ExpenseAction, group: ExpenseGroup) => void } =
-		$props();
+	type Props = {
+		groups: ExpenseGroup[];
+		onAction: (action: ExpenseAction, group: ExpenseGroup) => void;
+	};
+
+	let { groups, onAction }: Props = $props();
 </script>
 
-<Table.Root>
-	<Table.Header>
+<Table.Root containerClass="min-h-0 flex-1 overflow-y-auto">
+	<Table.Header sticky>
 		<Table.Row>
 			<Table.Head>Expense</Table.Head>
 			<Table.Head>Tag</Table.Head>
