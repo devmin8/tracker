@@ -2,6 +2,7 @@
 	import { parseDate, type DateValue } from '@internationalized/date';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { format } from 'date-fns';
+	import { tick } from 'svelte';
 
 	import { Button } from '$lib/components/ui/button';
 	import { Calendar } from '$lib/components/ui/calendar';
@@ -27,6 +28,7 @@
 	}: DatePickerProps = $props();
 
 	let open = $state(false);
+	let trigger = $state<HTMLButtonElement | null>(null);
 
 	const selectedDate = $derived.by(() => {
 		const normalized = value ? formatDateString(value) : null;
@@ -44,11 +46,14 @@
 			value = next.toString();
 		}
 		open = false;
+		tick().then(() => {
+			trigger?.focus();
+		});
 	}
 </script>
 
 <Popover.Root bind:open>
-	<Popover.Trigger {id} {disabled}>
+	<Popover.Trigger bind:ref={trigger} {id} {disabled}>
 		{#snippet child({ props })}
 			<Button
 				{...props}
