@@ -1,22 +1,14 @@
 import * as v from 'valibot';
 
-import type { AddExpenseInput } from '$lib/expenses/add-expense-input.schema';
 import { toCents } from '$lib/utils/amount';
 import { formatDateString } from '$lib/utils/date';
-
-export type { AddExpenseInput };
-
-export type ExpenseTagOption = {
-	id: string;
-	name: string;
-};
 
 function optionalBlank(value: string | undefined) {
 	const trimmed = value?.trim() ?? '';
 	return trimmed === '' ? undefined : trimmed;
 }
 
-export const AddExpenseFormSchema = v.pipe(
+export const AddExpenseSchema = v.pipe(
 	v.object({
 		amount: v.pipe(
 			v.string(),
@@ -41,14 +33,14 @@ export const AddExpenseFormSchema = v.pipe(
 		tagId: v.optional(v.string()),
 		comments: v.optional(v.string())
 	}),
-	v.transform(
-		({ amount, expenseDate, description, tagId, comments }): AddExpenseInput => ({
-			amount,
-			expenseDate,
-			description,
-			refinedDescription: description,
-			tagId: optionalBlank(tagId),
-			comments: optionalBlank(comments)
-		})
-	)
+	v.transform(({ amount, expenseDate, description, tagId, comments }) => ({
+		amount,
+		expenseDate,
+		description,
+		refinedDescription: description,
+		tagId: optionalBlank(tagId),
+		comments: optionalBlank(comments)
+	}))
 );
+
+export type AddExpenseInput = v.InferOutput<typeof AddExpenseSchema>;

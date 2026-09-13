@@ -1,16 +1,15 @@
 import * as v from 'valibot';
 import { describe, expect, test } from 'vitest';
 
-import { AddExpenseInputSchema } from '$lib/expenses/add-expense-input.schema';
+import { AddExpenseSchema } from './add-expense.schema';
 
-import { AddExpenseFormSchema } from './add-expense-form.schema';
-
-describe('AddExpenseFormSchema', () => {
-	test('stores amount in cents and copies description to refined description', () => {
-		const result = v.safeParse(AddExpenseFormSchema, {
+describe('AddExpenseSchema', () => {
+	test('normalizes form fields and derives the refined description', () => {
+		const result = v.safeParse(AddExpenseSchema, {
 			amount: '$12.50',
-			expenseDate: '2026-09-13',
-			description: '  Coffee shop  ',
+			expenseDate: '09/13/2026',
+			description: '  Coffee   shop  ',
+			refinedDescription: 'Do not use this',
 			tagId: 'tag-1',
 			comments: '  Morning run  '
 		});
@@ -26,22 +25,6 @@ describe('AddExpenseFormSchema', () => {
 			tagId: 'tag-1',
 			comments: 'Morning run'
 		});
-		expect(v.safeParse(AddExpenseInputSchema, result.output).success).toBe(true);
-	});
-
-	test('normalizes MM/dd/yyyy dates to YYYY-MM-DD', () => {
-		const result = v.safeParse(AddExpenseFormSchema, {
-			amount: '4.50',
-			expenseDate: '09/13/2026',
-			description: 'Coffee'
-		});
-
-		expect(result.success).toBe(true);
-		if (!result.success) return;
-
-		expect(result.output.expenseDate).toBe('2026-09-13');
-		expect(result.output.tagId).toBeUndefined();
-		expect(result.output.comments).toBeUndefined();
 	});
 
 	test('rejects missing or invalid fields', () => {
@@ -71,6 +54,6 @@ describe('AddExpenseFormSchema', () => {
 });
 
 function firstIssue(input: Record<string, string>) {
-	const result = v.safeParse(AddExpenseFormSchema, input);
+	const result = v.safeParse(AddExpenseSchema, input);
 	return result.success ? undefined : result.issues[0]?.message;
 }

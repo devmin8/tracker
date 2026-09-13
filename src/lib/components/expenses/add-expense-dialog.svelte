@@ -3,10 +3,10 @@
 
 	import { invalidateAll } from '$app/navigation';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import type { FormValues } from '$lib/utils/form';
 	import { request } from '$lib/utils/request';
 
-	import AddExpenseForm from './add-expense.svelte';
-	import type { AddExpenseInput, ExpenseTagOption } from './add-expense-form.schema';
+	import AddExpenseForm, { type ExpenseTagOption } from './add-expense.svelte';
 
 	type Props = {
 		open?: boolean;
@@ -22,7 +22,7 @@
 		if (!next) errorMessage = undefined;
 	}
 
-	async function onsubmit(input: AddExpenseInput) {
+	async function onsubmit(input: FormValues) {
 		submitting = true;
 		errorMessage = undefined;
 
