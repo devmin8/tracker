@@ -131,6 +131,25 @@ export async function createExpense(
 	return { ok: true, id: created.id };
 }
 
+export type DeleteExpenseResult = { ok: true; id: string } | { ok: false; message: string };
+
+export async function deleteExpense(
+	db: Database,
+	userId: string,
+	expenseId: string
+): Promise<DeleteExpenseResult> {
+	const [deleted] = await db
+		.delete(expense)
+		.where(and(eq(expense.id, expenseId), eq(expense.createdBy, userId)))
+		.returning({ id: expense.id });
+
+	if (!deleted) {
+		return { ok: false, message: 'Expense not found' };
+	}
+
+	return { ok: true, id: deleted.id };
+}
+
 // == local functions ==
 
 type CsvResult = { ok: true } | ImportError;

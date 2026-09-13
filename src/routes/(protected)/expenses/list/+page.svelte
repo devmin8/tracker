@@ -8,9 +8,12 @@
 	import {
 		AddExpenseDialog,
 		AllExpenses,
+		DeleteExpenseDialog,
 		GroupedExpense,
 		groupExpenses,
-		type ExpenseAction
+		type Expense,
+		type ExpenseAction,
+		type ExpenseGroup
 	} from '$lib/components/expenses';
 	import { UpdateTagsForm } from '$lib/components/tags';
 	import type { UpdateTagsInput } from '$lib/components/tags/update-tags-form.schema';
@@ -28,6 +31,7 @@
 	let grouped = $state(true);
 	let addExpenseOpen = $state(false);
 	let taggingDescription = $state<string | undefined>();
+	let deletingExpense = $state<Expense | undefined>();
 	let submitting = $state(false);
 	let errorMessage = $state<string | undefined>();
 
@@ -44,10 +48,22 @@
 		});
 	}
 
-	function onAction(action: ExpenseAction, target: { refinedDescription: string }) {
-		if (action !== 'update-tags') return;
-		taggingDescription = target.refinedDescription;
+	function openTagEditor(refinedDescription: string) {
+		taggingDescription = refinedDescription;
 		errorMessage = undefined;
+	}
+
+	function onGroupAction(action: ExpenseAction, group: ExpenseGroup) {
+		if (action !== 'update-tags') return;
+		openTagEditor(group.refinedDescription);
+	}
+
+	function onExpenseAction(action: ExpenseAction, expense: Expense) {
+		if (action === 'delete') {
+			deletingExpense = expense;
+		} else if (action === 'update-tags') {
+			openTagEditor(expense.refinedDescription);
+		}
 	}
 
 	function setDialogOpen(open: boolean) {
@@ -106,9 +122,9 @@
 	</div>
 
 	{#if grouped}
-		<GroupedExpense {groups} {onAction} />
+		<GroupedExpense {groups} onAction={onGroupAction} />
 	{:else}
-		<AllExpenses expenses={data.expenses} {onAction} />
+		<AllExpenses expenses={data.expenses} onAction={onExpenseAction} />
 	{/if}
 </div>
 
@@ -124,3 +140,4 @@
 </Dialog.Root>
 
 <AddExpenseDialog tags={data.tags} bind:open={addExpenseOpen} />
+<DeleteExpenseDialog bind:expense={deletingExpense} />

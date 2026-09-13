@@ -3,7 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
 
-	import type { ExpenseAction } from './expense-actions';
+	import { groupedExpenseActionItems, type ExpenseAction } from './expense-actions';
 	import ExpenseActions from './expense-actions.svelte';
 	import type { ExpenseGroup } from './group-expenses';
 
@@ -39,7 +39,10 @@
 				<Table.Cell class="text-end">{group.count}</Table.Cell>
 				<Table.Cell class="text-end">{formatCents(group.amount)}</Table.Cell>
 				<Table.Cell class="text-end">
-					<ExpenseActions onAction={(action) => onAction(action, group)} />
+					<ExpenseActions
+						items={groupedExpenseActionItems}
+						onAction={(action) => onAction(action, group)}
+					/>
 				</Table.Cell>
 			</Table.Row>
 		{:else}
