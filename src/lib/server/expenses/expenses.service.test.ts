@@ -1,75 +1,54 @@
 import { describe, expect, test } from 'vitest';
 
+import { formatYearMonth } from '$lib/utils/date';
+
 import { parseImportedFile } from './expenses.service';
 
 function csvFile(name: string, contents: string) {
 	return new File([contents], name, { type: 'text/csv' });
 }
 
+const july = formatYearMonth({ year: 2026, month: 7 });
+const august = formatYearMonth({ year: 2026, month: 8 });
+const september = formatYearMonth({ year: 2026, month: 9 });
+
 describe('parseImportedFile', () => {
-	test('returns a file error when the upload is missing or not a CSV', async () => {
-		expect(await parseImportedFile(null, '2026-07')).toEqual({
+	test('returns a file error when the upload is not a CSV', async () => {
+		expect(
+			await parseImportedFile(csvFile('expenses.txt', '07/18/2026,CAFE EXAMPLE,12.50,,'), july)
+		).toEqual({
 			ok: false,
-			message: 'A CSV file is required',
-			status: 400
+			message: 'Only CSV files are supported'
 		});
 
 		expect(
-			await parseImportedFile(csvFile('expenses.txt', '07/18/2026,CAFE EXAMPLE,12.50,,'), '2026-07')
+			await parseImportedFile(csvFile('too-big.csv', 'x'.repeat(1 * 1024 * 1024 + 1)), july)
 		).toEqual({
 			ok: false,
-			message: 'Only CSV files are supported',
-			status: 400
-		});
-
-		expect(
-			await parseImportedFile(csvFile('too-big.csv', 'x'.repeat(1 * 1024 * 1024 + 1)), '2026-07')
-		).toEqual({
-			ok: false,
-			message: 'Files must be 1 MB or smaller',
-			status: 400
-		});
-	});
-
-	test('returns a month error when the month is missing or invalid', async () => {
-		const file = csvFile('expenses.csv', '07/18/2026,CAFE EXAMPLE,12.50,,');
-
-		expect(await parseImportedFile(file, null)).toEqual({
-			ok: false,
-			message: 'A month is required',
-			status: 400
-		});
-
-		expect(await parseImportedFile(file, '2026-13')).toEqual({
-			ok: false,
-			message: 'Month must be YYYY-MM',
-			status: 400
+			message: 'Files must be 1 MB or smaller'
 		});
 	});
 
 	test('returns a parse error when the CSV cannot be parsed', async () => {
-		expect(await parseImportedFile(csvFile('empty.csv', ''), '2026-07')).toEqual({
+		expect(await parseImportedFile(csvFile('empty.csv', ''), july)).toEqual({
 			ok: false,
-			message: 'The CSV could not be parsed',
-			status: 400
+			message: 'The CSV could not be parsed'
 		});
 
 		expect(
-			await parseImportedFile(csvFile('malformed.csv', '07/18/2026,"CAFE EXAMPLE,12.50'), '2026-07')
+			await parseImportedFile(csvFile('malformed.csv', '07/18/2026,"CAFE EXAMPLE,12.50'), july)
 		).toEqual({
 			ok: false,
-			message: 'The CSV could not be parsed',
-			status: 400
+			message: 'The CSV could not be parsed'
 		});
 	});
 
 	test('returns an error when no expenses fall in the selected month', async () => {
 		expect(
-			await parseImportedFile(csvFile('expenses.csv', '07/18/2026,CAFE EXAMPLE,12.50,,'), '2026-08')
+			await parseImportedFile(csvFile('expenses.csv', '07/18/2026,CAFE EXAMPLE,12.50,,'), august)
 		).toEqual({
 			ok: false,
-			message: 'No expenses found for the selected month',
-			status: 400
+			message: 'No expenses found for the selected month'
 		});
 	});
 
@@ -84,12 +63,12 @@ describe('parseImportedFile', () => {
 					'10/01/2026,October,4.00,,'
 				].join('\n')
 			),
-			'2026-09'
+			september
 		);
 
 		expect(result).toEqual({
 			ok: true,
-			month: '2026-09',
+			month: september,
 			expenses: [
 				{
 					expenseDate: '2026-09-01',

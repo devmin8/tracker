@@ -7,7 +7,9 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { isNavGroup, navItems } from '$lib/components/layout/utils';
 
-	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
+	type Props = ComponentProps<typeof Sidebar.Root>;
+
+	let { ref = $bindable(null), ...restProps }: Props = $props();
 
 	const pathname = $derived(page.url.pathname);
 </script>

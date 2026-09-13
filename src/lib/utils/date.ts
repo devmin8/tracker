@@ -70,6 +70,10 @@ export function currentYearMonth(): YearMonth {
 	return formatYearMonth(currentYearMonthParts());
 }
 
+export function todayDateString(now = new Date()) {
+	return format(now, 'yyyy-MM-dd');
+}
+
 export function resolveYearMonth(value: YearMonthInput): YearMonth {
 	const parsed = parseYearMonth(value);
 	return parsed ? formatYearMonth(parsed) : currentYearMonth();

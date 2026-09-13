@@ -1,72 +1,50 @@
 import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
-import * as v from 'valibot';
 
+import type { AddExpenseInput } from '$lib/components/expenses/add-expense-form.schema';
 import type { Database } from '$lib/server/db/create-db';
 import { descriptionTag, expense, tag } from '$lib/server/db/schema';
-import {
-	formatYearMonth,
-	parseYearMonth,
-	YEAR_MONTH_PATTERN,
-	yearMonthRange,
-	type YearMonth
-} from '$lib/utils/date';
+import { assignDescriptionTag, findOwnedTag } from '$lib/server/tags';
+import { yearMonthRange, type YearMonth } from '$lib/utils/date';
 
 import { parseExpenseCsv, type CleansedExpense } from './csv-util';
-
-const YearMonthSchema = v.pipe(
-	v.string(),
-	v.trim(),
-	v.regex(YEAR_MONTH_PATTERN, 'Month must be YYYY-MM')
-);
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024;
 const INSERT_BATCH_SIZE = 500;
 
-type ImportError = { ok: false; message: string; status: 400 };
+type ImportError = { ok: false; message: string };
 type ParsedImport = { month: YearMonth; expenses: CleansedExpense[] };
 
 export type ImportResult = { ok: true; rowCount: number } | ImportError;
 export type ParseImportResult = ({ ok: true } & ParsedImport) | ImportError;
 
-export async function parseImportedFile(
-	file: FormDataEntryValue | null,
-	month: FormDataEntryValue | null
-): Promise<ParseImportResult> {
+export async function parseImportedFile(file: File, month: YearMonth): Promise<ParseImportResult> {
 	const csvFile = validateCsvFile(file);
 	if (!csvFile.ok) {
 		return csvFile;
 	}
 
-	const yearMonth = validateMonth(month);
-	if (!yearMonth.ok) {
-		return yearMonth;
-	}
-
-	const parsed = parseExpenseCsv(await csvFile.file.text());
+	const parsed = parseExpenseCsv(await file.text());
 	if (!parsed.ok) {
-		return { ok: false, message: 'The CSV could not be parsed', status: 400 };
+		return { ok: false, message: 'The CSV could not be parsed' };
 	}
 
-	const { start, end } = yearMonthRange(yearMonth.month);
-	const expenses = parsed.expenses.filter(
-		(row) => row.expenseDate >= start && row.expenseDate < end
-	);
+	const { includes } = monthBounds(month);
+	const expenses = parsed.expenses.filter((row) => includes(row.expenseDate));
 	if (expenses.length === 0) {
 		return {
 			ok: false,
-			message: 'No expenses found for the selected month',
-			status: 400
+			message: 'No expenses found for the selected month'
 		};
 	}
 
-	return { ok: true, month: yearMonth.month, expenses };
+	return { ok: true, month, expenses };
 }
 
 export async function importExpenses(
-	file: FormDataEntryValue | null,
+	db: Database,
 	userId: string,
-	month: FormDataEntryValue | null,
-	db: Database
+	file: File,
+	month: YearMonth
 ): Promise<ImportResult> {
 	const parsed = await parseImportedFile(file, month);
 	if (!parsed.ok) {
@@ -91,8 +69,6 @@ export async function listMonthExpenses(
 	userId: string,
 	month: YearMonth
 ): Promise<ListedExpense[]> {
-	const { start, end } = yearMonthRange(month);
-
 	return db
 		.select({
 			id: expense.id,
@@ -111,73 +87,91 @@ export async function listMonthExpenses(
 			)
 		)
 		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
-		.where(
-			and(
-				eq(expense.createdBy, userId),
-				gte(expense.expenseDate, start),
-				lt(expense.expenseDate, end)
-			)
-		)
+		.where(monthExpensesWhere(userId, month))
 		.orderBy(desc(expense.expenseDate), asc(expense.description));
+}
+
+export type CreateExpenseResult = { ok: true; id: string } | { ok: false; message: string };
+
+export async function createExpense(
+	db: Database,
+	userId: string,
+	input: AddExpenseInput
+): Promise<CreateExpenseResult> {
+	if (input.tagId) {
+		const existingTag = await findOwnedTag(db, userId, input.tagId);
+		if (!existingTag) {
+			return { ok: false, message: 'Tag not found' };
+		}
+	}
+
+	const created = await db.transaction(async (tx) => {
+		const [row] = await tx
+			.insert(expense)
+			.values({
+				expenseDate: input.expenseDate,
+				amount: input.amount,
+				description: input.description,
+				refinedDescription: input.refinedDescription,
+				comments: input.comments,
+				createdBy: userId,
+				updatedBy: userId
+			})
+			.returning({ id: expense.id });
+
+		if (!row) throw new Error('Expense insert did not return an id');
+
+		if (input.tagId) {
+			await assignDescriptionTag(tx, userId, input.refinedDescription, input.tagId);
+		}
+
+		return row;
+	});
+
+	return { ok: true, id: created.id };
 }
 
 // == local functions ==
 
-type CsvResult = { ok: true; file: File } | ImportError;
+type CsvResult = { ok: true } | ImportError;
 
-function validateCsvFile(file: FormDataEntryValue | null): CsvResult {
-	if (!(file instanceof File)) {
-		return { ok: false, message: 'A CSV file is required', status: 400 };
-	}
-
+function validateCsvFile(file: File): CsvResult {
 	if (!file.name.toLowerCase().endsWith('.csv')) {
-		return { ok: false, message: 'Only CSV files are supported', status: 400 };
+		return { ok: false, message: 'Only CSV files are supported' };
 	}
 
 	if (file.size > MAX_FILE_SIZE) {
-		return { ok: false, message: 'Files must be 1 MB or smaller', status: 400 };
+		return { ok: false, message: 'Files must be 1 MB or smaller' };
 	}
 
-	return { ok: true, file };
+	return { ok: true };
 }
 
-type MonthResult = { ok: true; month: YearMonth } | ImportError;
+function monthBounds(month: YearMonth) {
+	const { start, end } = yearMonthRange(month);
 
-function validateMonth(value: FormDataEntryValue | null): MonthResult {
-	if (typeof value !== 'string' || value.trim() === '') {
-		return { ok: false, message: 'A month is required', status: 400 };
-	}
+	return {
+		start,
+		end,
+		includes: (date: string) => date >= start && date < end
+	};
+}
 
-	const result = v.safeParse(YearMonthSchema, value);
-	if (!result.success) {
-		return {
-			ok: false,
-			message: result.issues[0]?.message ?? 'Month must be YYYY-MM',
-			status: 400
-		};
-	}
+function monthExpensesWhere(userId: string, month: YearMonth) {
+	const { start, end } = monthBounds(month);
 
-	const parsed = parseYearMonth(result.output);
-	if (!parsed) {
-		return { ok: false, message: 'Month must be YYYY-MM', status: 400 };
-	}
-
-	return { ok: true, month: formatYearMonth(parsed) };
+	return and(
+		eq(expense.createdBy, userId),
+		gte(expense.expenseDate, start),
+		lt(expense.expenseDate, end)
+	);
 }
 
 async function saveMonthExpenses(db: Database, userId: string, { month, expenses }: ParsedImport) {
-	const { start, end } = yearMonthRange(month);
 	const importedAt = new Date();
 
 	await db.transaction(async (tx) => {
-		await tx.delete(expense).where(
-			and(
-				eq(expense.createdBy, userId),
-				gte(expense.expenseDate, start),
-				// end is the 1st of next month, so lt (not lte) keeps [start, end)
-				lt(expense.expenseDate, end)
-			)
-		);
+		await tx.delete(expense).where(monthExpensesWhere(userId, month));
 
 		for (let batchStart = 0; batchStart < expenses.length; batchStart += INSERT_BATCH_SIZE) {
 			const rows = expenses.slice(batchStart, batchStart + INSERT_BATCH_SIZE).map((row) => ({
