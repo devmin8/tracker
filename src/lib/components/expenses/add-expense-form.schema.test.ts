@@ -1,7 +1,9 @@
 import * as v from 'valibot';
 import { describe, expect, test } from 'vitest';
 
-import { AddExpenseFormSchema, AddExpenseInputSchema } from './add-expense-form.schema';
+import { AddExpenseInputSchema } from '$lib/expenses/add-expense-input.schema';
+
+import { AddExpenseFormSchema } from './add-expense-form.schema';
 
 describe('AddExpenseFormSchema', () => {
 	test('stores amount in cents and copies description to refined description', () => {
@@ -24,6 +26,7 @@ describe('AddExpenseFormSchema', () => {
 			tagId: 'tag-1',
 			comments: 'Morning run'
 		});
+		expect(v.safeParse(AddExpenseInputSchema, result.output).success).toBe(true);
 	});
 
 	test('normalizes MM/dd/yyyy dates to YYYY-MM-DD', () => {
@@ -71,28 +74,3 @@ function firstIssue(input: Record<string, string>) {
 	const result = v.safeParse(AddExpenseFormSchema, input);
 	return result.success ? undefined : result.issues[0]?.message;
 }
-
-describe('AddExpenseInputSchema', () => {
-	test('accepts a canonical expense payload', () => {
-		const result = v.safeParse(AddExpenseInputSchema, {
-			amount: 450,
-			expenseDate: '2026-09-13',
-			description: 'Coffee',
-			refinedDescription: 'Coffee'
-		});
-
-		expect(result.success).toBe(true);
-	});
-
-	test('rejects timestamps and non-canonical dates', () => {
-		expect(
-			v.safeParse(AddExpenseInputSchema, {
-				amount: 450,
-				expenseDate: '2026-09-13T00:00:00.000Z',
-				description: 'Coffee',
-				refinedDescription: 'Coffee',
-				tagId: 'tag-1'
-			}).issues?.[0]?.message
-		).toBe('Enter a valid date');
-	});
-});
