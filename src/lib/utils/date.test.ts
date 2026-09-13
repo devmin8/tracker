@@ -7,6 +7,7 @@ import {
 	formatYearMonth,
 	parseYearMonth,
 	resolveYearMonth,
+	todayDateString,
 	yearMonthRange
 } from './date';
 
@@ -89,6 +90,15 @@ describe('yearMonthRange', () => {
 			start: '2026-12-01',
 			end: '2027-01-01'
 		});
+	});
+});
+
+describe('todayDateString', () => {
+	test('formats the local calendar date as YYYY-MM-DD', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 8, 13, 23, 30));
+
+		expect(todayDateString()).toBe('2026-09-13');
 	});
 });
 

@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
 	import {
+		AddExpenseDialog,
 		AllExpenses,
 		GroupedExpense,
 		groupExpenses,
@@ -12,6 +14,7 @@
 	} from '$lib/components/expenses';
 	import { UpdateTagsForm } from '$lib/components/tags';
 	import type { UpdateTagsInput } from '$lib/components/tags/update-tags-form.schema';
+	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Label } from '$lib/components/ui/label';
 	import { MonthPicker } from '$lib/components/ui/month-picker';
@@ -23,6 +26,7 @@
 	let { data } = $props();
 
 	let grouped = $state(true);
+	let addExpenseOpen = $state(false);
 	let taggingDescription = $state<string | undefined>();
 	let submitting = $state(false);
 	let errorMessage = $state<string | undefined>();
@@ -82,20 +86,24 @@
 <div class="flex min-h-0 flex-1 flex-col gap-4">
 	<div class="flex items-center justify-between gap-3">
 		<div class="flex items-center gap-2">
-			<span class="text-muted-foreground text-sm font-medium">Total expenses</span>
-			<span class="text-2xl font-semibold tabular-nums">{formatCents(total)}</span>
+			<span class="text-muted-foreground text-sm font-medium">Total :</span>
+			<span class="text-xl font-semibold tabular-nums">{formatCents(total)}</span>
 		</div>
 		<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2">
+				<Switch id="group-expenses" bind:checked={grouped} />
+				<Label for="group-expenses">Group expenses</Label>
+			</div>
 			<MonthPicker
 				class="w-48"
 				bind:value={() => data.month, setMonth}
 				max={currentYearMonth()}
 				ariaLabel="Month to view"
 			/>
-			<div class="flex items-center gap-2">
-				<Switch id="group-expenses" bind:checked={grouped} />
-				<Label for="group-expenses">Group expenses</Label>
-			</div>
+			<Button onclick={() => (addExpenseOpen = true)}>
+				<Plus />
+				Add
+			</Button>
 		</div>
 	</div>
 
@@ -116,3 +124,5 @@
 		/>
 	{/if}
 </Dialog.Root>
+
+<AddExpenseDialog tags={data.tags} bind:open={addExpenseOpen} />
