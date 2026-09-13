@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Badge } from '$lib/components/ui/badge';
 	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
 
@@ -16,6 +17,7 @@
 		<Table.Row>
 			<Table.Head>Date</Table.Head>
 			<Table.Head>Description</Table.Head>
+			<Table.Head>Tag</Table.Head>
 			<Table.Head class="text-end">Amount</Table.Head>
 			<Table.Head class="w-10">
 				<span class="sr-only">Actions</span>
@@ -27,6 +29,11 @@
 			<Table.Row>
 				<Table.Cell>{expense.expenseDate}</Table.Cell>
 				<Table.Cell class="font-medium">{expense.description}</Table.Cell>
+				<Table.Cell>
+					<Badge variant={expense.tag ? 'default' : 'secondary'}>
+						{expense.tag ?? 'Unverified'}
+					</Badge>
+				</Table.Cell>
 				<Table.Cell class="text-end">{formatCents(expense.amount)}</Table.Cell>
 				<Table.Cell class="text-end">
 					<ExpenseActions onAction={(action) => onAction(action, expense)} />
@@ -34,7 +41,7 @@
 			</Table.Row>
 		{:else}
 			<Table.Row>
-				<Table.Cell colspan={4} class="text-muted-foreground text-center">
+				<Table.Cell colspan={5} class="text-muted-foreground text-center">
 					No expenses for this month
 				</Table.Cell>
 			</Table.Row>

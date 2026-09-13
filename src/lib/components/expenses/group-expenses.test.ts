@@ -8,6 +8,7 @@ function expense(overrides: Partial<Expense> & Pick<Expense, 'id'>): Expense {
 		amount: 100,
 		description: 'Coffee',
 		refinedDescription: 'Coffee',
+		tag: null,
 		...overrides
 	};
 }
@@ -25,8 +26,8 @@ describe('groupExpenses', () => {
 				expense({ id: '3', description: 'UBER', refinedDescription: 'Ride', amount: 1200 })
 			])
 		).toEqual([
-			{ refinedDescription: 'Coffee', count: 2, amount: 650 },
-			{ refinedDescription: 'Ride', count: 1, amount: 1200 }
+			{ refinedDescription: 'Coffee', tag: null, count: 2, amount: 650 },
+			{ refinedDescription: 'Ride', tag: null, count: 1, amount: 1200 }
 		]);
 	});
 });
