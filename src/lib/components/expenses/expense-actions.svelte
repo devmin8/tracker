@@ -26,7 +26,7 @@
 		<DropdownMenu.Item variant="destructive" onSelect={() => onAction('delete')}>
 			Delete
 		</DropdownMenu.Item>
-		<DropdownMenu.Item onSelect={() => onAction('update-tags')}>Update tags</DropdownMenu.Item>
+		<DropdownMenu.Item onSelect={() => onAction('update-tags')}>Update tag</DropdownMenu.Item>
 		<DropdownMenu.Item onSelect={() => onAction('update-expense')}>Update expense</DropdownMenu.Item
 		>
 	</DropdownMenu.Content>
