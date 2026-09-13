@@ -4,10 +4,12 @@ export type Expense = {
 	amount: number;
 	description: string;
 	refinedDescription: string;
+	tag: string | null;
 };
 
 export type ExpenseGroup = {
 	refinedDescription: string;
+	tag: string | null;
 	count: number;
 	amount: number;
 };
@@ -26,6 +28,7 @@ export function groupExpenses(expenses: Expense[]): ExpenseGroup[] {
 
 		groups.set(expense.refinedDescription, {
 			refinedDescription: expense.refinedDescription,
+			tag: expense.tag,
 			count: 1,
 			amount: expense.amount
 		});

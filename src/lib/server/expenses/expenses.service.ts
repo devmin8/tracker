@@ -2,7 +2,7 @@ import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
 import * as v from 'valibot';
 
 import type { Database } from '$lib/server/db/create-db';
-import { expense } from '$lib/server/db/schema';
+import { descriptionTag, expense, tag } from '$lib/server/db/schema';
 import {
 	formatYearMonth,
 	parseYearMonth,
@@ -83,6 +83,7 @@ export type ListedExpense = {
 	amount: number;
 	description: string;
 	refinedDescription: string;
+	tag: string | null;
 };
 
 export async function listMonthExpenses(
@@ -98,9 +99,18 @@ export async function listMonthExpenses(
 			expenseDate: expense.expenseDate,
 			amount: expense.amount,
 			description: expense.description,
-			refinedDescription: expense.refinedDescription
+			refinedDescription: expense.refinedDescription,
+			tag: tag.name
 		})
 		.from(expense)
+		.leftJoin(
+			descriptionTag,
+			and(
+				eq(descriptionTag.userId, expense.createdBy),
+				eq(descriptionTag.refinedDescription, expense.refinedDescription)
+			)
+		)
+		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
 		.where(
 			and(
 				eq(expense.createdBy, userId),
