@@ -37,7 +37,7 @@
 
 <Dialog.Content class="sm:max-w-sm">
 	<Dialog.Header>
-		<Dialog.Title>Update tags</Dialog.Title>
+		<Dialog.Title>Update tag</Dialog.Title>
 		<Dialog.Description>{refinedDescription}</Dialog.Description>
 	</Dialog.Header>
 	<form bind:this={form} onsubmit={handleSubmit} class="flex flex-col gap-6">
