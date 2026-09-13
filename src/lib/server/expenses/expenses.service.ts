@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
 
-import type { AddExpenseInput } from '$lib/components/expenses/add-expense-form.schema';
+import type { AddExpenseInput } from '$lib/expenses/add-expense-input.schema';
 import type { Database } from '$lib/server/db/create-db';
 import { descriptionTag, expense, tag } from '$lib/server/db/schema';
 import { assignDescriptionTag, findOwnedTag } from '$lib/server/tags';

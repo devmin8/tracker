@@ -62,10 +62,8 @@
 
 		const outcome = await request('/expenses/tags', {
 			method: 'POST',
-			body: new URLSearchParams({
-				name: input.name,
-				refinedDescription: input.refinedDescription
-			})
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(input)
 		});
 
 		if (outcome.ok) {

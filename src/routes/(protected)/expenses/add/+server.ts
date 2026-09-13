@@ -1,35 +1,26 @@
 import { json } from '@sveltejs/kit';
 import * as v from 'valibot';
 
-import { AddExpenseInputSchema } from '$lib/components/expenses/add-expense-form.schema';
+import { AddExpenseInputSchema } from '$lib/expenses/add-expense-input.schema';
 import { db } from '$lib/server/db';
 import { createExpense } from '$lib/server/expenses';
-import { safeResolve } from '$lib/utils/safe-resolve';
+import { badRequest, protectedApi, readJson, validationError } from '$lib/server/http';
 
-import type { RequestHandler } from './$types';
-
-export const POST: RequestHandler = async ({ request, locals }) => {
-	if (!locals.user) {
-		return json({ message: 'Unauthorized' }, { status: 401 });
-	}
-
-	const body = await safeResolve(() => request.json());
+export const POST = protectedApi(async ({ request }, user) => {
+	const body = await readJson(request);
 	if (!body.ok) {
-		return json({ message: 'Please check the expense details' }, { status: 400 });
+		return badRequest('Please check the expense details');
 	}
 
 	const parsed = v.safeParse(AddExpenseInputSchema, body.result);
 	if (!parsed.success) {
-		return json(
-			{ message: parsed.issues[0]?.message ?? 'Please check the expense details' },
-			{ status: 400 }
-		);
+		return validationError(parsed.issues, 'Please check the expense details');
 	}
 
-	const result = await createExpense(db, locals.user.id, parsed.output);
+	const result = await createExpense(db, user.id, parsed.output);
 	if (!result.ok) {
-		return json({ message: result.message }, { status: 400 });
+		return badRequest(result.message);
 	}
 
 	return json({ id: result.id });
-};
+});

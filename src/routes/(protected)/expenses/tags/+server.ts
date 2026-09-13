@@ -3,25 +3,20 @@ import * as v from 'valibot';
 
 import { UpdateTagsSchema } from '$lib/components/tags/update-tags-form.schema';
 import { db } from '$lib/server/db';
+import { badRequest, protectedApi, readJson, validationError } from '$lib/server/http';
 import { updateTags } from '$lib/server/tags';
 
-import type { RequestHandler } from './$types';
-
-export const POST: RequestHandler = async ({ request, locals }) => {
-	if (!locals.user) {
-		return json({ message: 'Unauthorized' }, { status: 401 });
+export const POST = protectedApi(async ({ request }, user) => {
+	const body = await readJson(request);
+	if (!body.ok) {
+		return badRequest('Please check the tag details');
 	}
 
-	const formData = await request.formData();
-	const parsed = v.safeParse(UpdateTagsSchema, Object.fromEntries(formData));
-
+	const parsed = v.safeParse(UpdateTagsSchema, body.result);
 	if (!parsed.success) {
-		return json(
-			{ message: parsed.issues[0]?.message ?? 'Please check the tag details' },
-			{ status: 400 }
-		);
+		return validationError(parsed.issues, 'Please check the tag details');
 	}
 
-	const tagId = await updateTags(db, locals.user.id, parsed.output);
+	const tagId = await updateTags(db, user.id, parsed.output);
 	return json({ tagId });
-};
+});
