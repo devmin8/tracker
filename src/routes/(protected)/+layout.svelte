@@ -5,11 +5,11 @@
 	let { children } = $props();
 </script>
 
-<Sidebar.Provider>
+<Sidebar.Provider class="h-svh">
 	<AppSidebar />
-	<Sidebar.Inset>
+	<Sidebar.Inset class="min-h-0 overflow-hidden">
 		<AppHeader />
-		<div class="flex flex-1 flex-col gap-4 p-4">
+		<div class="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4">
 			{@render children()}
 		</div>
 	</Sidebar.Inset>
