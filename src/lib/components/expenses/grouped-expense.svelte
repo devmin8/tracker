@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Badge } from '$lib/components/ui/badge';
 	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
 
@@ -17,6 +18,7 @@
 	<Table.Header>
 		<Table.Row>
 			<Table.Head>Expense</Table.Head>
+			<Table.Head>Tag</Table.Head>
 			<Table.Head class="text-end">Count</Table.Head>
 			<Table.Head class="text-end">Amount</Table.Head>
 			<Table.Head class="w-10">
@@ -28,6 +30,11 @@
 		{#each groups as group (group.refinedDescription)}
 			<Table.Row>
 				<Table.Cell class="font-medium">{group.refinedDescription}</Table.Cell>
+				<Table.Cell>
+					<Badge variant={group.tag ? 'default' : 'secondary'}>
+						{group.tag ?? 'Unverified'}
+					</Badge>
+				</Table.Cell>
 				<Table.Cell class="text-end">{group.count}</Table.Cell>
 				<Table.Cell class="text-end">{formatCents(group.amount)}</Table.Cell>
 				<Table.Cell class="text-end">
@@ -36,7 +43,7 @@
 			</Table.Row>
 		{:else}
 			<Table.Row>
-				<Table.Cell colspan={4} class="text-muted-foreground text-center">
+				<Table.Cell colspan={5} class="text-muted-foreground text-center">
 					No expenses for this month
 				</Table.Cell>
 			</Table.Row>

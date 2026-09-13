@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
 
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
 	import {
@@ -65,8 +65,9 @@
 		});
 
 		if (outcome.ok) {
+			await invalidateAll();
 			taggingDescription = undefined;
-			toast.success('Tag created');
+			toast.success('Tag updated');
 		} else {
 			errorMessage =
 				outcome.error.kind === 'network'
