@@ -10,14 +10,22 @@
 
 	type Props = {
 		refinedDescription: string;
+		name?: string | null;
 		submitting?: boolean;
 		errorMessage?: string;
 		onsubmit: (input: UpdateTagsInput) => Promise<void>;
 	};
 
-	let { refinedDescription, submitting = false, errorMessage, onsubmit }: Props = $props();
+	let {
+		refinedDescription,
+		name: existingName,
+		submitting = false,
+		errorMessage,
+		onsubmit
+	}: Props = $props();
 
 	let form: HTMLFormElement;
+	let name = $derived(existingName ?? '');
 
 	let validationMessage = $state<string>();
 
@@ -50,7 +58,14 @@
 
 			<Field>
 				<FieldLabel>Tag</FieldLabel>
-				<Input name="name" type="text" placeholder="Groceries" required maxlength={50} />
+				<Input
+					name="name"
+					type="text"
+					placeholder="Groceries"
+					required
+					maxlength={50}
+					bind:value={name}
+				/>
 			</Field>
 		</FieldGroup>
 

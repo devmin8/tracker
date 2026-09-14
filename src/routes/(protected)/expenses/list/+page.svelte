@@ -27,12 +27,17 @@
 	import { currentYearMonth } from '$lib/utils/date';
 	import { request } from '$lib/utils/request';
 
+	type TagEditor = {
+		refinedDescription: string;
+		name: string | null;
+	};
+
 	let { data } = $props();
 
 	let grouped = $state(true);
 	let addingExpense = $state(false);
 	let editingExpense = $state<Expense | undefined>();
-	let taggingDescription = $state<string | undefined>();
+	let tagging = $state<TagEditor | undefined>();
 	let deletingExpense = $state<Expense | undefined>();
 	let submitting = $state(false);
 	let errorMessage = $state<string | undefined>();
@@ -50,21 +55,21 @@
 		});
 	}
 
-	function openTagEditor(refinedDescription: string) {
-		taggingDescription = refinedDescription;
+	function openTagEditor(refinedDescription: string, name: string | null) {
+		tagging = { refinedDescription, name };
 		errorMessage = undefined;
 	}
 
 	function onGroupAction(action: ExpenseAction, group: ExpenseGroup) {
 		if (action !== 'update-tags') return;
-		openTagEditor(group.refinedDescription);
+		openTagEditor(group.refinedDescription, group.tag);
 	}
 
 	function onExpenseAction(action: ExpenseAction, expense: Expense) {
 		if (action === 'delete') {
 			deletingExpense = expense;
 		} else if (action === 'update-tags') {
-			openTagEditor(expense.refinedDescription);
+			openTagEditor(expense.refinedDescription, expense.tag);
 		} else if (action === 'update-expense') {
 			editingExpense = expense;
 		}
@@ -72,7 +77,7 @@
 
 	function setDialogOpen(open: boolean) {
 		if (open) return;
-		taggingDescription = undefined;
+		tagging = undefined;
 		errorMessage = undefined;
 	}
 
@@ -88,7 +93,7 @@
 
 		if (outcome.ok) {
 			await invalidateAll();
-			taggingDescription = undefined;
+			tagging = undefined;
 			toast.success('Tag updated');
 		} else {
 			errorMessage =
@@ -132,10 +137,11 @@
 	{/if}
 </div>
 
-<Dialog.Root bind:open={() => taggingDescription !== undefined, setDialogOpen}>
-	{#if taggingDescription}
+<Dialog.Root bind:open={() => tagging !== undefined, setDialogOpen}>
+	{#if tagging}
 		<UpdateTagsForm
-			refinedDescription={taggingDescription}
+			refinedDescription={tagging.refinedDescription}
+			name={tagging.name}
 			{submitting}
 			{errorMessage}
 			{onsubmit}
