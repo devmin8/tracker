@@ -6,10 +6,11 @@
 	import { resolve } from '$app/paths';
 
 	import {
-		AddExpenseDialog,
 		AllExpenses,
+		AddExpenseDialog,
 		DeleteExpenseDialog,
 		GroupedExpense,
+		UpdateExpenseDialog,
 		groupExpenses,
 		type Expense,
 		type ExpenseAction,
@@ -29,7 +30,8 @@
 	let { data } = $props();
 
 	let grouped = $state(true);
-	let addExpenseOpen = $state(false);
+	let addingExpense = $state(false);
+	let editingExpense = $state<Expense | undefined>();
 	let taggingDescription = $state<string | undefined>();
 	let deletingExpense = $state<Expense | undefined>();
 	let submitting = $state(false);
@@ -63,6 +65,8 @@
 			deletingExpense = expense;
 		} else if (action === 'update-tags') {
 			openTagEditor(expense.refinedDescription);
+		} else if (action === 'update-expense') {
+			editingExpense = expense;
 		}
 	}
 
@@ -114,7 +118,7 @@
 				max={currentYearMonth()}
 				ariaLabel="Month to view"
 			/>
-			<Button onclick={() => (addExpenseOpen = true)}>
+			<Button onclick={() => (addingExpense = true)}>
 				<Plus />
 				Add
 			</Button>
@@ -139,5 +143,6 @@
 	{/if}
 </Dialog.Root>
 
-<AddExpenseDialog tags={data.tags} bind:open={addExpenseOpen} />
+<AddExpenseDialog bind:open={addingExpense} />
+<UpdateExpenseDialog bind:expense={editingExpense} />
 <DeleteExpenseDialog bind:expense={deletingExpense} />

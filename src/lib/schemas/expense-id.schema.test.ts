@@ -1,11 +1,11 @@
 import * as v from 'valibot';
 import { describe, expect, test } from 'vitest';
 
-import { DeleteExpenseSchema } from './delete-expense.schema';
+import { ExpenseIdSchema } from './expense-id.schema';
 
-describe('DeleteExpenseSchema', () => {
+describe('ExpenseIdSchema', () => {
 	test('accepts a trimmed expense id', () => {
-		const result = v.safeParse(DeleteExpenseSchema, '  expense-1  ');
+		const result = v.safeParse(ExpenseIdSchema, '  expense-1  ');
 
 		expect(result.success).toBe(true);
 		if (!result.success) return;
@@ -14,7 +14,7 @@ describe('DeleteExpenseSchema', () => {
 	});
 
 	test('rejects a missing id', () => {
-		const result = v.safeParse(DeleteExpenseSchema, '   ');
+		const result = v.safeParse(ExpenseIdSchema, '   ');
 
 		expect(result.success).toBe(false);
 		if (result.success) return;

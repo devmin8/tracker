@@ -8,6 +8,8 @@ function expense(overrides: Partial<Expense> & Pick<Expense, 'id'>): Expense {
 		amount: 100,
 		description: 'Coffee',
 		refinedDescription: 'Coffee',
+		comments: null,
+		tagId: null,
 		tag: null,
 		...overrides
 	};

@@ -6,35 +6,42 @@
 	import type { FormValues } from '$lib/utils/form';
 	import { request } from '$lib/utils/request';
 
-	import AddExpenseForm from './add-expense.svelte';
+	import type { Expense } from './group-expenses';
+	import UpdateExpenseForm from './update-expense.svelte';
 
 	type Props = {
-		open?: boolean;
+		expense: Expense | undefined;
 	};
 
-	let { open = $bindable(false) }: Props = $props();
+	let { expense = $bindable() }: Props = $props();
 
 	let submitting = $state(false);
 	let errorMessage = $state<string | undefined>();
 
-	function onOpenChange(next: boolean) {
-		if (!next) errorMessage = undefined;
+	function setOpen(open: boolean) {
+		if (open) return;
+		expense = undefined;
+		errorMessage = undefined;
+		submitting = false;
 	}
 
 	async function onsubmit(input: FormValues) {
+		if (!expense) return;
+
+		const current = expense;
 		submitting = true;
 		errorMessage = undefined;
 
-		const outcome = await request<{ id: string }>('/expenses/add', {
-			method: 'POST',
+		const outcome = await request<{ id: string }>(`/expenses/${current.id}`, {
+			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(input)
 		});
 
 		if (outcome.ok) {
 			await invalidateAll();
-			open = false;
-			toast.success('Expense added');
+			expense = undefined;
+			toast.success('Expense updated');
 		} else {
 			errorMessage =
 				outcome.error.kind === 'network'
@@ -46,8 +53,8 @@
 	}
 </script>
 
-<Dialog.Root bind:open {onOpenChange}>
-	{#if open}
-		<AddExpenseForm {submitting} {errorMessage} {onsubmit} />
+<Dialog.Root bind:open={() => expense !== undefined, setOpen}>
+	{#if expense}
+		<UpdateExpenseForm {expense} {submitting} {errorMessage} {onsubmit} />
 	{/if}
 </Dialog.Root>
