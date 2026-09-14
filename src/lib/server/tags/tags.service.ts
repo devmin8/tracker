@@ -1,5 +1,3 @@
-import { and, asc, eq } from 'drizzle-orm';
-
 import type { Database } from '$lib/server/db/create-db';
 import { descriptionTag, tag } from '$lib/server/db/schema';
 
@@ -9,29 +7,6 @@ type UpdateTagsInput = {
 	nameKey: string;
 	refinedDescription: string;
 };
-
-export type ListedTag = {
-	id: string;
-	name: string;
-};
-
-export async function listTags(db: Database, userId: string): Promise<ListedTag[]> {
-	return db
-		.select({ id: tag.id, name: tag.name })
-		.from(tag)
-		.where(eq(tag.userId, userId))
-		.orderBy(asc(tag.name));
-}
-
-export async function findOwnedTag(db: Database, userId: string, tagId: string) {
-	const [existingTag] = await db
-		.select({ id: tag.id })
-		.from(tag)
-		.where(and(eq(tag.id, tagId), eq(tag.userId, userId)))
-		.limit(1);
-
-	return existingTag;
-}
 
 export async function assignDescriptionTag(
 	tx: Transaction,

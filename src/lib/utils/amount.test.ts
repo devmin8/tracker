@@ -1,12 +1,20 @@
 import { describe, expect, test } from 'vitest';
 
-import { formatCents, toCents } from './amount';
+import { centsToInput, formatCents, toCents } from './amount';
 
 describe('formatCents', () => {
 	test('formats cents as a signed dollar amount', () => {
 		expect(formatCents(1250)).toBe('$12.50');
 		expect(formatCents(0)).toBe('$0.00');
 		expect(formatCents(-450)).toBe('-$4.50');
+	});
+});
+
+describe('centsToInput', () => {
+	test('formats cents as a form amount', () => {
+		expect(centsToInput(1250)).toBe('12.50');
+		expect(centsToInput(0)).toBe('0.00');
+		expect(centsToInput(-450)).toBe('-4.50');
 	});
 });
 

@@ -1,9 +1,9 @@
 import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
 
-import type { AddExpenseInput } from '$lib/schemas/add-expense.schema';
+import type { CreateExpenseInput } from '$lib/schemas/create-expense.schema';
+import type { UpdateExpenseInput } from '$lib/schemas/update-expense.schema';
 import type { Database } from '$lib/server/db/create-db';
 import { descriptionTag, expense, tag } from '$lib/server/db/schema';
-import { assignDescriptionTag, findOwnedTag } from '$lib/server/tags';
 import { yearMonthRange, type YearMonth } from '$lib/utils/date';
 
 import { parseExpenseCsv, type CleansedExpense } from './csv-util';
@@ -61,6 +61,8 @@ export type ListedExpense = {
 	amount: number;
 	description: string;
 	refinedDescription: string;
+	comments: string | null;
+	tagId: string | null;
 	tag: string | null;
 };
 
@@ -76,6 +78,8 @@ export async function listMonthExpenses(
 			amount: expense.amount,
 			description: expense.description,
 			refinedDescription: expense.refinedDescription,
+			comments: expense.comments,
+			tagId: descriptionTag.tagId,
 			tag: tag.name
 		})
 		.from(expense)
@@ -91,20 +95,13 @@ export async function listMonthExpenses(
 		.orderBy(desc(expense.expenseDate), asc(expense.description));
 }
 
-export type CreateExpenseResult = { ok: true; id: string } | { ok: false; message: string };
+export type ExpenseWriteResult = { ok: true; id: string } | { ok: false; message: string };
 
 export async function createExpense(
 	db: Database,
 	userId: string,
-	input: AddExpenseInput
-): Promise<CreateExpenseResult> {
-	if (input.tagId) {
-		const existingTag = await findOwnedTag(db, userId, input.tagId);
-		if (!existingTag) {
-			return { ok: false, message: 'Tag not found' };
-		}
-	}
-
+	input: CreateExpenseInput
+): Promise<ExpenseWriteResult> {
 	const created = await db.transaction(async (tx) => {
 		const [row] = await tx
 			.insert(expense)
@@ -121,23 +118,47 @@ export async function createExpense(
 
 		if (!row) throw new Error('Expense insert did not return an id');
 
-		if (input.tagId) {
-			await assignDescriptionTag(tx, userId, input.refinedDescription, input.tagId);
-		}
-
 		return row;
 	});
 
 	return { ok: true, id: created.id };
 }
 
-export type DeleteExpenseResult = { ok: true; id: string } | { ok: false; message: string };
+export async function updateExpense(
+	db: Database,
+	userId: string,
+	expenseId: string,
+	input: UpdateExpenseInput
+): Promise<ExpenseWriteResult> {
+	const updated = await db.transaction(async (tx) => {
+		const [row] = await tx
+			.update(expense)
+			.set({
+				expenseDate: input.expenseDate,
+				amount: input.amount,
+				comments: input.comments ?? null,
+				updatedBy: userId
+			})
+			.where(and(eq(expense.id, expenseId), eq(expense.createdBy, userId)))
+			.returning({ id: expense.id });
+
+		if (!row) return undefined;
+
+		return row;
+	});
+
+	if (!updated) {
+		return { ok: false, message: 'Expense not found' };
+	}
+
+	return { ok: true, id: updated.id };
+}
 
 export async function deleteExpense(
 	db: Database,
 	userId: string,
 	expenseId: string
-): Promise<DeleteExpenseResult> {
+): Promise<ExpenseWriteResult> {
 	const [deleted] = await db
 		.delete(expense)
 		.where(and(eq(expense.id, expenseId), eq(expense.createdBy, userId)))
