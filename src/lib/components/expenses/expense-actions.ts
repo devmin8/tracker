@@ -7,9 +7,9 @@ export type ExpenseActionItem = {
 };
 
 export const expenseActionItems: ExpenseActionItem[] = [
-	{ action: 'delete', label: 'Delete', variant: 'destructive' },
+	{ action: 'update-expense', label: 'Update expense' },
 	{ action: 'update-tags', label: 'Update tag' },
-	{ action: 'update-expense', label: 'Update expense' }
+	{ action: 'delete', label: 'Delete expense', variant: 'destructive' }
 ];
 
 export const groupedExpenseActionItems = expenseActionItems.filter(
