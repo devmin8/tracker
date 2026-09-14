@@ -8,7 +8,7 @@ function optionalBlank(value: string | undefined) {
 	return trimmed === '' ? undefined : trimmed;
 }
 
-export const AddExpenseSchema = v.pipe(
+export const CreateExpenseSchema = v.pipe(
 	v.object({
 		amount: v.pipe(
 			v.string(),
@@ -30,17 +30,15 @@ export const AddExpenseSchema = v.pipe(
 			v.transform((value) => value.replace(/\s+/g, ' ')),
 			v.nonEmpty('Description is required')
 		),
-		tagId: v.optional(v.string()),
 		comments: v.optional(v.string())
 	}),
-	v.transform(({ amount, expenseDate, description, tagId, comments }) => ({
+	v.transform(({ amount, expenseDate, description, comments }) => ({
 		amount,
 		expenseDate,
 		description,
 		refinedDescription: description,
-		tagId: optionalBlank(tagId),
 		comments: optionalBlank(comments)
 	}))
 );
 
-export type AddExpenseInput = v.InferOutput<typeof AddExpenseSchema>;
+export type CreateExpenseInput = v.InferOutput<typeof CreateExpenseSchema>;

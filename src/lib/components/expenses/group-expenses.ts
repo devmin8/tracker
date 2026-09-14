@@ -4,6 +4,8 @@ export type Expense = {
 	amount: number;
 	description: string;
 	refinedDescription: string;
+	comments: string | null;
+	tagId: string | null;
 	tag: string | null;
 };
 

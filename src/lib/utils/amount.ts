@@ -1,7 +1,15 @@
 const DOLLARS = /^-?\d+(\.\d{1,2})?$/;
 
+function absDollars(cents: number) {
+	return (Math.abs(cents) / 100).toFixed(2);
+}
+
 export function formatCents(cents: number) {
-	return `${cents < 0 ? '-' : ''}$${(Math.abs(cents) / 100).toFixed(2)}`;
+	return `${cents < 0 ? '-' : ''}$${absDollars(cents)}`;
+}
+
+export function centsToInput(cents: number) {
+	return `${cents < 0 ? '-' : ''}${absDollars(cents)}`;
 }
 
 export function toCents(value: string) {

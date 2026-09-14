@@ -13,5 +13,5 @@ export const expenseActionItems: ExpenseActionItem[] = [
 ];
 
 export const groupedExpenseActionItems = expenseActionItems.filter(
-	(item) => item.action !== 'delete'
+	(item) => item.action === 'update-tags'
 );
