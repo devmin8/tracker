@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { sql, type InferInsertModel } from 'drizzle-orm';
 import {
 	foreignKey,
 	index,
@@ -11,6 +11,8 @@ import {
 
 import { user } from './auth.schema';
 
+export type ExpenseSource = 'imported' | 'manual';
+
 export const expense = sqliteTable(
 	'expense',
 	{
@@ -21,6 +23,7 @@ export const expense = sqliteTable(
 		importedAt: integer('imported_at', { mode: 'timestamp_ms' })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),
+		source: text('source').$type<ExpenseSource>().notNull(),
 		// lets store in cents
 		amount: integer('amount').notNull(),
 		description: text('description').notNull(),
@@ -35,6 +38,8 @@ export const expense = sqliteTable(
 	},
 	(table) => [index('expense_created_by_expense_date_idx').on(table.createdBy, table.expenseDate)]
 );
+
+export type ExpenseInsert = InferInsertModel<typeof expense>;
 
 export const tag = sqliteTable(
 	'tag',
