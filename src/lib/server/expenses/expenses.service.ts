@@ -3,7 +3,7 @@ import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
 import type { CreateExpenseInput } from '$lib/schemas/create-expense.schema';
 import type { UpdateExpenseInput } from '$lib/schemas/update-expense.schema';
 import type { Database } from '$lib/server/db/create-db';
-import { descriptionTag, expense, tag } from '$lib/server/db/schema';
+import { descriptionTag, expense, tag, type ExpenseInsert } from '$lib/server/db/schema';
 import { yearMonthRange, type YearMonth } from '$lib/utils/date';
 
 import { parseExpenseCsv, type CleansedExpense } from './csv-util';
@@ -71,6 +71,8 @@ export async function listMonthExpenses(
 	userId: string,
 	month: YearMonth
 ): Promise<ListedExpense[]> {
+	const { start, end } = yearMonthRange(month);
+
 	return db
 		.select({
 			id: expense.id,
@@ -91,7 +93,13 @@ export async function listMonthExpenses(
 			)
 		)
 		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
-		.where(monthExpensesWhere(userId, month))
+		.where(
+			and(
+				eq(expense.createdBy, userId),
+				gte(expense.expenseDate, start),
+				lt(expense.expenseDate, end)
+			)
+		)
 		.orderBy(desc(expense.expenseDate), asc(expense.description));
 }
 
@@ -112,8 +120,9 @@ export async function createExpense(
 				refinedDescription: input.refinedDescription,
 				comments: input.comments,
 				createdBy: userId,
-				updatedBy: userId
-			})
+				updatedBy: userId,
+				source: 'manual'
+			} satisfies ExpenseInsert)
 			.returning({ id: expense.id });
 
 		if (!row) throw new Error('Expense insert did not return an id');
@@ -197,32 +206,35 @@ function monthBounds(month: YearMonth) {
 	};
 }
 
-function monthExpensesWhere(userId: string, month: YearMonth) {
-	const { start, end } = monthBounds(month);
-
-	return and(
-		eq(expense.createdBy, userId),
-		gte(expense.expenseDate, start),
-		lt(expense.expenseDate, end)
-	);
-}
-
 async function saveMonthExpenses(db: Database, userId: string, { month, expenses }: ParsedImport) {
 	const importedAt = new Date();
+	const { start, end } = yearMonthRange(month);
 
 	await db.transaction(async (tx) => {
-		await tx.delete(expense).where(monthExpensesWhere(userId, month));
+		await tx
+			.delete(expense)
+			.where(
+				and(
+					eq(expense.createdBy, userId),
+					gte(expense.expenseDate, start),
+					lt(expense.expenseDate, end),
+					eq(expense.source, 'imported')
+				)
+			);
 
 		for (let batchStart = 0; batchStart < expenses.length; batchStart += INSERT_BATCH_SIZE) {
-			const rows = expenses.slice(batchStart, batchStart + INSERT_BATCH_SIZE).map((row) => ({
-				expenseDate: row.expenseDate,
-				importedAt,
-				amount: row.amount,
-				description: row.description,
-				refinedDescription: row.refinedDescription,
-				createdBy: userId,
-				updatedBy: userId
-			}));
+			const rows: ExpenseInsert[] = expenses
+				.slice(batchStart, batchStart + INSERT_BATCH_SIZE)
+				.map((row) => ({
+					expenseDate: row.expenseDate,
+					importedAt,
+					amount: row.amount,
+					description: row.description,
+					refinedDescription: row.refinedDescription,
+					createdBy: userId,
+					updatedBy: userId,
+					source: 'imported'
+				}));
 
 			await tx.insert(expense).values(rows);
 		}
