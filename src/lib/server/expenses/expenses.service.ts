@@ -1,5 +1,6 @@
-import { and, asc, desc, eq, gte, lt } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, lt, sql } from 'drizzle-orm';
 
+import type { Expense } from '$lib/expenses';
 import type { CreateExpenseInput } from '$lib/schemas/create-expense.schema';
 import type { UpdateExpenseInput } from '$lib/schemas/update-expense.schema';
 import type { Database } from '$lib/server/db/create-db';
@@ -55,24 +56,13 @@ export async function importExpenses(
 	return { ok: true, rowCount: parsed.expenses.length };
 }
 
-export type ListedExpense = {
-	id: string;
-	expenseDate: string;
-	amount: number;
-	description: string;
-	refinedDescription: string;
-	comments: string | null;
-	tagId: string | null;
-	tag: string | null;
-};
+export type ListedExpense = Expense;
 
 export async function listMonthExpenses(
 	db: Database,
 	userId: string,
 	month: YearMonth
 ): Promise<ListedExpense[]> {
-	const { start, end } = yearMonthRange(month);
-
 	return db
 		.select({
 			id: expense.id,
@@ -93,14 +83,88 @@ export async function listMonthExpenses(
 			)
 		)
 		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
-		.where(
+		.where(whereUserExpensesInMonth(userId, month))
+		.orderBy(desc(expense.expenseDate), asc(expense.description));
+}
+
+export async function getMonthExpenseTotal(db: Database, userId: string, month: YearMonth) {
+	const [result] = await db
+		.select({ amount: sql<number>`coalesce(sum(${expense.amount}), 0)` })
+		.from(expense)
+		.where(whereUserExpensesInMonth(userId, month));
+
+	return result?.amount ?? 0;
+}
+
+export type MonthTagSpending = {
+	name: string | null;
+	amount: number;
+};
+
+export async function listMonthTagSpending(
+	db: Database,
+	userId: string,
+	month: YearMonth
+): Promise<MonthTagSpending[]> {
+	const amount = sql<number>`coalesce(sum(${expense.amount}), 0)`;
+
+	return db
+		.select({
+			name: tag.name,
+			amount
+		})
+		.from(expense)
+		.leftJoin(
+			descriptionTag,
 			and(
-				eq(expense.createdBy, userId),
-				gte(expense.expenseDate, start),
-				lt(expense.expenseDate, end)
+				eq(descriptionTag.userId, expense.createdBy),
+				eq(descriptionTag.refinedDescription, expense.refinedDescription)
 			)
 		)
-		.orderBy(desc(expense.expenseDate), asc(expense.description));
+		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
+		.where(whereUserExpensesInMonth(userId, month))
+		.groupBy(tag.name)
+		.orderBy(desc(amount));
+}
+
+export type RecentGroupedExpense = {
+	description: string;
+	tag: string | null;
+	expenseDate: string;
+	count: number;
+	amount: number;
+};
+
+export async function listRecentMonthExpenseGroups(
+	db: Database,
+	userId: string,
+	month: YearMonth,
+	limit: number
+): Promise<RecentGroupedExpense[]> {
+	const latestDate = sql<string>`max(${expense.expenseDate})`;
+	const amount = sql<number>`coalesce(sum(${expense.amount}), 0)`;
+
+	return db
+		.select({
+			description: expense.refinedDescription,
+			tag: tag.name,
+			expenseDate: latestDate,
+			count: sql<number>`count(*)`,
+			amount
+		})
+		.from(expense)
+		.leftJoin(
+			descriptionTag,
+			and(
+				eq(descriptionTag.userId, expense.createdBy),
+				eq(descriptionTag.refinedDescription, expense.refinedDescription)
+			)
+		)
+		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
+		.where(whereUserExpensesInMonth(userId, month))
+		.groupBy(expense.refinedDescription, tag.name)
+		.orderBy(desc(latestDate), asc(expense.refinedDescription))
+		.limit(limit);
 }
 
 export type ExpenseWriteResult = { ok: true; id: string } | { ok: false; message: string };
@@ -194,6 +258,16 @@ function validateCsvFile(file: File): CsvResult {
 	}
 
 	return { ok: true };
+}
+
+function whereUserExpensesInMonth(userId: string, month: YearMonth) {
+	const { start, end } = yearMonthRange(month);
+
+	return and(
+		eq(expense.createdBy, userId),
+		gte(expense.expenseDate, start),
+		lt(expense.expenseDate, end)
+	);
 }
 
 function monthBounds(month: YearMonth) {

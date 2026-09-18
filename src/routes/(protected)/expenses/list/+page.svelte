@@ -11,10 +11,7 @@
 		DeleteExpenseDialog,
 		GroupedExpense,
 		UpdateExpenseDialog,
-		groupExpenses,
-		type Expense,
-		type ExpenseAction,
-		type ExpenseGroup
+		type ExpenseAction
 	} from '$lib/components/expenses';
 	import { UpdateTagsForm } from '$lib/components/tags';
 	import type { UpdateTagsInput } from '$lib/components/tags/update-tags-form.schema';
@@ -23,6 +20,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Switch } from '$lib/components/ui/switch';
+	import { groupExpenses, type Expense, type ExpenseGroup } from '$lib/expenses';
 	import { formatCents } from '$lib/utils/amount';
 	import { currentYearMonth } from '$lib/utils/date';
 	import { request } from '$lib/utils/request';

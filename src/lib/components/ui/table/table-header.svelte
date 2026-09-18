@@ -16,8 +16,7 @@
 	}: Props = $props();
 
 	// Keeps each header cell visible above scrolling table rows.
-	const stickyHeaderClass =
-		'[&>tr>th]:sticky [&>tr>th]:top-0 [&>tr>th]:z-20 [&>tr>th]:bg-card';
+	const stickyHeaderClass = '[&>tr>th]:sticky [&>tr>th]:top-0 [&>tr>th]:z-20 [&>tr>th]:bg-card';
 </script>
 
 <thead
