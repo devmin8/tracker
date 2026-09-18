@@ -83,6 +83,17 @@ export function compareYearMonths(a: YearMonthParts, b: YearMonthParts) {
 	return a.year - b.year || a.month - b.month;
 }
 
+export function previousYearMonth(month: YearMonth): YearMonth {
+	const parsed = parseYearMonth(month);
+	if (!parsed) throw new Error(`Invalid year-month: ${month}`);
+
+	return formatYearMonth(
+		parsed.month === 1
+			? { year: parsed.year - 1, month: 12 }
+			: { year: parsed.year, month: parsed.month - 1 }
+	);
+}
+
 export function yearMonthRange(month: YearMonth) {
 	const parsed = parseYearMonth(month);
 	if (!parsed) throw new Error(`Invalid year-month: ${month}`);
