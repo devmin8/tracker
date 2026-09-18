@@ -6,6 +6,7 @@ import {
 	formatDateString,
 	formatYearMonth,
 	parseYearMonth,
+	previousYearMonth,
 	resolveYearMonth,
 	todayDateString,
 	yearMonthRange
@@ -74,6 +75,16 @@ describe('compareYearMonths', () => {
 		expect(compareYearMonths({ year: 2026, month: 10 }, { year: 2026, month: 9 })).toBeGreaterThan(
 			0
 		);
+	});
+});
+
+describe('previousYearMonth', () => {
+	test('returns the preceding calendar month', () => {
+		expect(previousYearMonth(formatYearMonth({ year: 2026, month: 9 }))).toBe('2026-08');
+	});
+
+	test('rolls January into the previous year', () => {
+		expect(previousYearMonth(formatYearMonth({ year: 2026, month: 1 }))).toBe('2025-12');
 	});
 });
 

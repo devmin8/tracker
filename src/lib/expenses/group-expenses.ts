@@ -16,7 +16,9 @@ export type ExpenseGroup = {
 	amount: number;
 };
 
-export function groupExpenses(expenses: Expense[]): ExpenseGroup[] {
+type GroupableExpense = Pick<Expense, 'refinedDescription' | 'tag' | 'amount'>;
+
+export function groupExpenses(expenses: GroupableExpense[]): ExpenseGroup[] {
 	const groups = new Map<string, ExpenseGroup>();
 
 	for (const expense of expenses) {

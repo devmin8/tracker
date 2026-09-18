@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge';
 	import * as Table from '$lib/components/ui/table';
+	import type { ExpenseGroup } from '$lib/expenses';
 	import { formatCents } from '$lib/utils/amount';
 
 	import { groupedExpenseActionItems, type ExpenseAction } from './expense-actions';
 	import ExpenseActions from './expense-actions.svelte';
-	import type { ExpenseGroup } from './group-expenses';
 
 	type Props = {
 		groups: ExpenseGroup[];

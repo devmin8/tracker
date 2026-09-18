@@ -3,10 +3,10 @@
 
 	import { invalidateAll } from '$app/navigation';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import type { Expense } from '$lib/expenses';
 	import type { FormValues } from '$lib/utils/form';
 	import { request } from '$lib/utils/request';
 
-	import type { Expense } from './group-expenses';
 	import UpdateExpenseForm from './update-expense.svelte';
 
 	type Props = {
