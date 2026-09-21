@@ -5,6 +5,9 @@ import { migrate } from 'drizzle-orm/libsql/migrator';
 
 import { createDb } from '$lib/server/db/create-db';
 import { getEnvData } from '$lib/server/env.schema';
+import { loadEnvFileIfExists } from '$lib/server/load-env';
+
+loadEnvFileIfExists();
 
 const { DATABASE_URL } = getEnvData();
 const db = createDb(DATABASE_URL);

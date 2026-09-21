@@ -15,7 +15,7 @@
 		"format": "prettier --write .",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "tsx --env-file=.env ./scripts/migrate.ts",
+		"db:migrate": "tsx ./scripts/migrate.ts",
 		"create-user": "tsx ./scripts/create-user.ts"
 	},
 	"devDependencies": {
@@ -60,7 +60,6 @@
 		"@tailwindcss/vite": "^4.3.3",
 		"better-auth": "^1.7.3",
 		"date-fns": "^4.4.0",
-		"dotenv": "^17.4.2",
 		"drizzle-orm": "1.0.0-rc.4",
 		"mode-watcher": "^1.1.0",
 		"papaparse": "^5.7.0",

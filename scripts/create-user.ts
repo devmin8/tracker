@@ -1,11 +1,13 @@
 import { parseArgs } from 'node:util';
 
 import { betterAuth } from 'better-auth';
-import 'dotenv/config';
 
-import { createDb } from '$lib/server/db/create-db';
 import { createAuthOptions } from '$lib/server/auth/create-auth-options';
+import { createDb } from '$lib/server/db/create-db';
 import { getEnvData } from '$lib/server/env.schema';
+import { loadEnvFileIfExists } from '$lib/server/load-env';
+
+loadEnvFileIfExists();
 
 const { DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL } = getEnvData();
 const db = createDb(DATABASE_URL);
