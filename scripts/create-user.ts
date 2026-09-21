@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 
-import { betterAuth } from 'better-auth';
+import { betterAuth } from 'better-auth/minimal';
 
 import { createAuthOptions } from '$lib/server/auth/create-auth-options';
 import { createDb } from '$lib/server/db/create-db';

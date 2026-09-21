@@ -1,0 +1,12 @@
+node_modules
+build
+.svelte-kit
+.git
+.env*
+*.db*
+*.sqlite*
+.notes
+.docs
+README.md
+components.json
+jsrepo.config.ts
