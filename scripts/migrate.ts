@@ -12,7 +12,7 @@ loadEnvFileIfExists();
 const { DATABASE_URL } = getEnvData();
 const db = createDb(DATABASE_URL);
 
-async function main() {
+export async function migrateDatabase() {
 	const migrationsFolder = join(process.cwd(), 'drizzle');
 	if (!existsSync(migrationsFolder)) {
 		console.error(`Error: migrations folder not found at ${migrationsFolder}`);
@@ -23,4 +23,7 @@ async function main() {
 	console.log('Migrations applied');
 }
 
-main();
+migrateDatabase().catch((error: unknown) => {
+	console.error(error instanceof Error ? `Error: ${error.message}` : error);
+	process.exitCode = 1;
+});

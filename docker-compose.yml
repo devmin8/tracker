@@ -1,0 +1,21 @@
+# Local testing only — not used for Rivet deployment.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/app/data/tracker.db
+      BETTER_AUTH_SECRET: local-docker-dev-secret-min-32-chars
+      BETTER_AUTH_URL: http://localhost:3000
+      # adapter-node defaults the request origin to https when ORIGIN is unset.
+      # Better Auth then skips /api/auth/* (http vs https) and login POSTs 404.
+      ORIGIN: http://localhost:3000
+    volumes:
+      - sqlite_data:/app/data
+
+volumes:
+  sqlite_data:
