@@ -5,6 +5,7 @@ An expense tracker application build for my personal use using sveltekit.
 # How to run
 
 - Install [portless](https://portless.sh/).
+- Copy `.env.example` to `.env` and set `BETTER_AUTH_SECRET` (`openssl rand -hex 32`).
 - Run `pnpm install`.
 - Run `pnpm dev`
 - Open https://tracker.localhost in browser.
