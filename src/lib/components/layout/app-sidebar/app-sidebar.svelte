@@ -12,6 +12,12 @@
 	let { ref = $bindable(null), ...restProps }: Props = $props();
 
 	const pathname = $derived(page.url.pathname);
+
+	const sidebar = Sidebar.useSidebar();
+
+	function closeMobileSidebar() {
+		if (sidebar.isMobile) sidebar.setOpenMobile(false);
+	}
 </script>
 
 <Sidebar.Root {...restProps} bind:ref>
@@ -20,7 +26,7 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton size="lg">
 					{#snippet child({ props })}
-						<a href={resolve('/')} {...props}>
+						<a href={resolve('/')} {...props} onclick={closeMobileSidebar}>
 							<Logo />
 							<div class="flex flex-col gap-0.5 leading-none">
 								<span class="font-medium">Tracker</span>
@@ -51,7 +57,9 @@
 									<Sidebar.MenuSubItem>
 										<Sidebar.MenuSubButton isActive={pathname === subItem.url}>
 											{#snippet child({ props })}
-												<a href={resolve(subItem.url)} {...props}>{subItem.title}</a>
+												<a href={resolve(subItem.url)} {...props} onclick={closeMobileSidebar}
+													>{subItem.title}</a
+												>
 											{/snippet}
 										</Sidebar.MenuSubButton>
 									</Sidebar.MenuSubItem>
@@ -60,7 +68,9 @@
 						{:else}
 							<Sidebar.MenuButton class="font-medium" isActive={pathname === item.url}>
 								{#snippet child({ props })}
-									<a href={resolve(item.url)} {...props}>{item.title}</a>
+									<a href={resolve(item.url)} {...props} onclick={closeMobileSidebar}
+										>{item.title}</a
+									>
 								{/snippet}
 							</Sidebar.MenuButton>
 						{/if}
