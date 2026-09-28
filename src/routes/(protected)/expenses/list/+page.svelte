@@ -32,7 +32,7 @@
 
 	let { data } = $props();
 
-	let grouped = $state(true);
+	let grouped = $state(false);
 	let addingExpense = $state(false);
 	let editingExpense = $state<Expense | undefined>();
 	let tagging = $state<TagEditor | undefined>();
@@ -104,8 +104,8 @@
 	}
 </script>
 
-<div class="flex min-h-0 flex-1 flex-col gap-4 border bg-card p-4">
-	<div class="flex items-center justify-between gap-3">
+<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 border bg-card p-4">
+	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 		<div class="flex items-center gap-2">
 			<span class="text-muted-foreground text-sm font-medium">Total :</span>
 			<span class="text-xl font-semibold tabular-nums">{formatCents(total)}</span>

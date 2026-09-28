@@ -61,9 +61,10 @@ export type ListedExpense = Expense;
 export async function listMonthExpenses(
 	db: Database,
 	userId: string,
-	month: YearMonth
+	month: YearMonth,
+	limit?: number
 ): Promise<ListedExpense[]> {
-	return db
+	const query = db
 		.select({
 			id: expense.id,
 			expenseDate: expense.expenseDate,
@@ -85,6 +86,8 @@ export async function listMonthExpenses(
 		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
 		.where(whereUserExpensesInMonth(userId, month))
 		.orderBy(desc(expense.expenseDate), asc(expense.description));
+
+	return limit === undefined ? query : query.limit(limit);
 }
 
 export async function getMonthExpenseTotal(db: Database, userId: string, month: YearMonth) {
@@ -125,46 +128,6 @@ export async function listMonthTagSpending(
 		.where(whereUserExpensesInMonth(userId, month))
 		.groupBy(tag.name)
 		.orderBy(desc(amount));
-}
-
-export type RecentGroupedExpense = {
-	description: string;
-	tag: string | null;
-	expenseDate: string;
-	count: number;
-	amount: number;
-};
-
-export async function listRecentMonthExpenseGroups(
-	db: Database,
-	userId: string,
-	month: YearMonth,
-	limit: number
-): Promise<RecentGroupedExpense[]> {
-	const latestDate = sql<string>`max(${expense.expenseDate})`;
-	const amount = sql<number>`coalesce(sum(${expense.amount}), 0)`;
-
-	return db
-		.select({
-			description: expense.refinedDescription,
-			tag: tag.name,
-			expenseDate: latestDate,
-			count: sql<number>`count(*)`,
-			amount
-		})
-		.from(expense)
-		.leftJoin(
-			descriptionTag,
-			and(
-				eq(descriptionTag.userId, expense.createdBy),
-				eq(descriptionTag.refinedDescription, expense.refinedDescription)
-			)
-		)
-		.leftJoin(tag, and(eq(tag.userId, expense.createdBy), eq(tag.id, descriptionTag.tagId)))
-		.where(whereUserExpensesInMonth(userId, month))
-		.groupBy(expense.refinedDescription, tag.name)
-		.orderBy(desc(latestDate), asc(expense.refinedDescription))
-		.limit(limit);
 }
 
 export type ExpenseWriteResult = { ok: true; id: string } | { ok: false; message: string };

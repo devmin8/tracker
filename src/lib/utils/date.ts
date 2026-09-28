@@ -123,3 +123,10 @@ export function formatDateString(value: string) {
 
 	return null;
 }
+
+export function formatDisplayDate(value: string) {
+	const date = parse(value.trim(), 'yyyy-MM-dd', new Date(0));
+	if (!isValid(date)) return null;
+
+	return format(date, 'dd-MM-yyyy');
+}

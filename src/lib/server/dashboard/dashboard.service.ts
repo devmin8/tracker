@@ -1,8 +1,9 @@
 import type { Database } from '$lib/server/db/create-db';
 import {
 	getMonthExpenseTotal,
+	listMonthExpenses,
 	listMonthTagSpending,
-	listRecentMonthExpenseGroups,
+	type ListedExpense,
 	type MonthTagSpending
 } from '$lib/server/expenses';
 import { previousYearMonth, type YearMonth } from '$lib/utils/date';
@@ -15,13 +16,7 @@ export type DashboardTagSpending = {
 	share: number;
 };
 
-export type DashboardRecentExpense = {
-	description: string;
-	tag: string | null;
-	expenseDate: string;
-	count: number;
-	amount: number;
-};
+export type DashboardRecentExpense = ListedExpense;
 
 export type Dashboard = {
 	month: YearMonth;
@@ -41,7 +36,7 @@ export async function getDashboard(
 		getMonthExpenseTotal(db, userId, month),
 		getMonthExpenseTotal(db, userId, previousMonth),
 		listMonthTagSpending(db, userId, month),
-		listRecentMonthExpenseGroups(db, userId, month, RECENT_EXPENSE_LIMIT)
+		listMonthExpenses(db, userId, month, RECENT_EXPENSE_LIMIT)
 	]);
 
 	return {

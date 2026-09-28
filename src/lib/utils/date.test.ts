@@ -4,6 +4,7 @@ import {
 	compareYearMonths,
 	currentYearMonth,
 	formatDateString,
+	formatDisplayDate,
 	formatYearMonth,
 	parseYearMonth,
 	previousYearMonth,
@@ -125,5 +126,18 @@ describe('formatDateString', () => {
 		expect(formatDateString('not-a-date')).toBeNull();
 		expect(formatDateString('18/07/2026')).toBeNull();
 		expect(formatDateString('2026-13-01')).toBeNull();
+	});
+});
+
+describe('formatDisplayDate', () => {
+	test('formats a stored date as DD-MM-YYYY', () => {
+		expect(formatDisplayDate('2026-09-08')).toBe('08-09-2026');
+		expect(formatDisplayDate(' 2026-01-03 ')).toBe('03-01-2026');
+	});
+
+	test('rejects values that are not YYYY-MM-DD', () => {
+		expect(formatDisplayDate('')).toBeNull();
+		expect(formatDisplayDate('08-09-2026')).toBeNull();
+		expect(formatDisplayDate('2026-13-01')).toBeNull();
 	});
 });

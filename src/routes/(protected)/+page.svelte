@@ -9,7 +9,7 @@
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
-	import { currentYearMonth } from '$lib/utils/date';
+	import { currentYearMonth, formatDisplayDate } from '$lib/utils/date';
 
 	let { data } = $props();
 
@@ -124,37 +124,45 @@
 				View all <ChevronRight class="size-4" />
 			</a>
 		</div>
-		<div class="border bg-card">
-			<Table.Root>
+		<div class="min-w-0 border bg-card">
+			<Table.Root class="table-fixed">
 				<Table.Header>
 					<Table.Row class="hover:bg-transparent">
-						<Table.Head class="px-4 sm:px-5">Expense</Table.Head>
-						<Table.Head class="hidden px-5 sm:table-cell">Tag</Table.Head>
-						<Table.Head class="hidden px-5 text-center sm:table-cell">Count</Table.Head>
-						<Table.Head class="px-4 text-right sm:px-5">Amount</Table.Head>
+						<Table.Head class="ps-4 pe-2 sm:w-2/5 sm:px-5">
+							<span class="sm:hidden">Expense</span>
+							<span class="hidden sm:inline">Title</span>
+						</Table.Head>
+						<Table.Head class="hidden px-5 sm:table-cell sm:w-1/4">Tag</Table.Head>
+						<Table.Head class="hidden px-5 sm:table-cell sm:w-1/5">Date</Table.Head>
+						<Table.Head class="w-24 px-2 text-right sm:w-3/20 sm:px-5">Amount</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					{#each data.recentExpenses as expense (expense.description)}
+					{#each data.recentExpenses as expense (expense.id)}
 						<Table.Row>
-							<Table.Cell class="max-w-0 px-4 py-3.5 sm:px-5">
-								<p class="truncate font-medium">{expense.description}</p>
-								<p class="text-muted-foreground mt-0.5 text-xs">{expense.expenseDate}</p>
-								<div class="mt-2 sm:hidden">
-									<Badge variant={expense.tag ? 'default' : 'secondary'}>
-										{expense.tag ?? 'Untagged'}
+							<Table.Cell class="overflow-hidden ps-4 pe-2 py-3.5 align-top sm:px-5 sm:align-middle">
+								<p class="truncate text-xs font-medium">{expense.description}</p>
+								<div class="mt-1 flex min-w-0 items-center gap-2 sm:hidden">
+									<p class="text-muted-foreground shrink-0 text-xs">
+										{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
+									</p>
+									<Badge
+										class="max-w-24 min-w-0 shrink overflow-hidden px-1.5"
+										variant={expense.tag ? 'default' : 'secondary'}
+									>
+										<span class="truncate">{expense.tag ?? 'Untagged'}</span>
 									</Badge>
 								</div>
 							</Table.Cell>
 							<Table.Cell class="hidden px-5 py-3.5 sm:table-cell">
-								<Badge variant={expense.tag ? 'default' : 'secondary'}
-									>{expense.tag ?? 'Untagged'}</Badge
-								>
+								<Badge variant={expense.tag ? 'default' : 'secondary'}>{expense.tag ?? 'Untagged'}</Badge>
 							</Table.Cell>
-							<Table.Cell class="hidden px-5 py-3.5 text-center tabular-nums sm:table-cell">
-								{expense.count}
+							<Table.Cell class="text-muted-foreground hidden px-5 py-3.5 text-xs sm:table-cell">
+								{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
 							</Table.Cell>
-							<Table.Cell class="px-4 py-3.5 text-right font-medium tabular-nums sm:px-5">
+							<Table.Cell
+								class="px-2 py-3.5 text-right align-top font-medium tabular-nums sm:px-5 sm:align-middle"
+							>
 								{formatCents(expense.amount)}
 							</Table.Cell>
 						</Table.Row>
