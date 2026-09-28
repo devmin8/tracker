@@ -1,13 +1,13 @@
 <script lang="ts">
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { cn, type WithElementRef } from '$lib/utils/cn.js';
+	import { cn, type WithElementRef } from '$lib/utils/cn';
 	import {
 		SIDEBAR_COOKIE_MAX_AGE,
 		SIDEBAR_COOKIE_NAME,
 		SIDEBAR_WIDTH,
 		SIDEBAR_WIDTH_ICON
-	} from './constants.js';
-	import { setSidebar } from './context.svelte.js';
+	} from './constants';
+	import { setSidebar } from './context.svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	let {

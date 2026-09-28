@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Separator } from '$lib/components/ui/separator';
-	import { cn, type WithElementRef } from '$lib/utils/cn.js';
+	import { cn, type WithElementRef } from '$lib/utils/cn';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 

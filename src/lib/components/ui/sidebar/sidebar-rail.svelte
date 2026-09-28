@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from '$lib/utils/cn.js';
-	import { useSidebar } from './context.svelte.js';
+	import { cn, type WithElementRef } from '$lib/utils/cn';
+	import { useSidebar } from './context.svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	let {
