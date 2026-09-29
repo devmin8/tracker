@@ -3,13 +3,11 @@
 
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { AddExpenseDialog } from '$lib/components/expenses';
-	import { Badge } from '$lib/components/ui/badge';
+	import { AddExpenseDialog, AllExpenses, ManageExpenses } from '$lib/components/expenses';
 	import { Button } from '$lib/components/ui/button';
 	import { MonthPicker } from '$lib/components/ui/month-picker';
-	import * as Table from '$lib/components/ui/table';
 	import { formatCents } from '$lib/utils/amount';
-	import { currentYearMonth, formatDisplayDate } from '$lib/utils/date';
+	import { currentYearMonth } from '$lib/utils/date';
 
 	let { data } = $props();
 
@@ -81,8 +79,6 @@
 						{spendingChange <= 0 ? 'lower' : 'higher'} than last month</span
 					>
 				</div>
-			{:else}
-				<p class="text-muted-foreground text-sm">No spending last month</p>
 			{/if}
 		</div>
 		<div class="min-w-0 p-5">
@@ -105,8 +101,6 @@
 						</div>
 					{/each}
 				</div>
-			{:else}
-				<p class="text-muted-foreground text-sm">No expenses recorded this month.</p>
 			{/if}
 		</div>
 	</section>
@@ -125,56 +119,19 @@
 			</a>
 		</div>
 		<div class="min-w-0 border bg-card">
-			<Table.Root class="table-fixed">
-				<Table.Header>
-					<Table.Row class="hover:bg-transparent">
-						<Table.Head class="ps-4 pe-2 sm:w-2/5 sm:px-5">
-							<span class="sm:hidden">Expense</span>
-							<span class="hidden sm:inline">Title</span>
-						</Table.Head>
-						<Table.Head class="hidden px-5 sm:table-cell sm:w-1/4">Tag</Table.Head>
-						<Table.Head class="hidden px-5 sm:table-cell sm:w-1/5">Date</Table.Head>
-						<Table.Head class="w-24 px-2 text-right sm:w-3/20 sm:px-5">Amount</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					{#each data.recentExpenses as expense (expense.id)}
-						<Table.Row>
-							<Table.Cell class="overflow-hidden ps-4 pe-2 py-3.5 align-top sm:px-5 sm:align-middle">
-								<p class="truncate text-xs font-medium">{expense.description}</p>
-								<div class="mt-1 flex min-w-0 items-center gap-2 sm:hidden">
-									<p class="text-muted-foreground shrink-0 text-xs">
-										{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
-									</p>
-									<Badge
-										class="max-w-24 min-w-0 shrink overflow-hidden px-1.5"
-										variant={expense.tag ? 'default' : 'secondary'}
-									>
-										<span class="truncate">{expense.tag ?? 'Untagged'}</span>
-									</Badge>
-								</div>
-							</Table.Cell>
-							<Table.Cell class="hidden px-5 py-3.5 sm:table-cell">
-								<Badge variant={expense.tag ? 'default' : 'secondary'}>{expense.tag ?? 'Untagged'}</Badge>
-							</Table.Cell>
-							<Table.Cell class="text-muted-foreground hidden px-5 py-3.5 text-xs sm:table-cell">
-								{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
-							</Table.Cell>
-							<Table.Cell
-								class="px-2 py-3.5 text-right align-top font-medium tabular-nums sm:px-5 sm:align-middle"
-							>
-								{formatCents(expense.amount)}
-							</Table.Cell>
-						</Table.Row>
-					{:else}
-						<Table.Row>
-							<Table.Cell colspan={4} class="text-muted-foreground px-5 py-8 text-center">
-								No expenses recorded this month.
-							</Table.Cell>
-						</Table.Row>
-					{/each}
-				</Table.Body>
-			</Table.Root>
+			<ManageExpenses>
+				{#snippet children({ onExpenseAction })}
+					<AllExpenses
+						expenses={data.recentExpenses}
+						onAction={onExpenseAction}
+						emptyMessage="No expenses recorded this month."
+						descriptionSize="xs"
+						lowercaseDescription={false}
+						scrollable={false}
+						headerHover={false}
+					/>
+				{/snippet}
+			</ManageExpenses>
 		</div>
 	</section>
 </div>

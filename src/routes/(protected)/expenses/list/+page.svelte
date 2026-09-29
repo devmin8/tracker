@@ -1,44 +1,29 @@
 <script lang="ts">
 	import { Plus } from '@lucide/svelte';
-	import { toast } from 'svelte-sonner';
 
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
 	import {
 		AllExpenses,
 		AddExpenseDialog,
-		DeleteExpenseDialog,
 		GroupedExpense,
-		UpdateExpenseDialog,
-		type ExpenseAction
+		ManageExpenses
 	} from '$lib/components/expenses';
-	import { UpdateTagsForm } from '$lib/components/tags';
-	import type { UpdateTagsInput } from '$lib/components/tags/update-tags-form.schema';
 	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
 	import { Label } from '$lib/components/ui/label';
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Switch } from '$lib/components/ui/switch';
-	import { groupExpenses, type Expense, type ExpenseGroup } from '$lib/expenses';
+	import { groupExpenses } from '$lib/expenses';
 	import { formatCents } from '$lib/utils/amount';
 	import { currentYearMonth } from '$lib/utils/date';
-	import { request } from '$lib/utils/request';
-
-	type TagEditor = {
-		refinedDescription: string;
-		name: string | null;
-	};
 
 	let { data } = $props();
 
 	let grouped = $state(false);
 	let addingExpense = $state(false);
-	let editingExpense = $state<Expense | undefined>();
-	let tagging = $state<TagEditor | undefined>();
-	let deletingExpense = $state<Expense | undefined>();
-	let submitting = $state(false);
-	let errorMessage = $state<string | undefined>();
+
+	const emptyMessage = 'No expenses for this month';
 
 	const total = $derived(data.expenses.reduce((sum, expense) => sum + expense.amount, 0));
 
@@ -51,56 +36,6 @@
 			keepFocus: true,
 			noScroll: true
 		});
-	}
-
-	function openTagEditor(refinedDescription: string, name: string | null) {
-		tagging = { refinedDescription, name };
-		errorMessage = undefined;
-	}
-
-	function onGroupAction(action: ExpenseAction, group: ExpenseGroup) {
-		if (action !== 'update-tags') return;
-		openTagEditor(group.refinedDescription, group.tag);
-	}
-
-	function onExpenseAction(action: ExpenseAction, expense: Expense) {
-		if (action === 'delete') {
-			deletingExpense = expense;
-		} else if (action === 'update-tags') {
-			openTagEditor(expense.refinedDescription, expense.tag);
-		} else if (action === 'update-expense') {
-			editingExpense = expense;
-		}
-	}
-
-	function setDialogOpen(open: boolean) {
-		if (open) return;
-		tagging = undefined;
-		errorMessage = undefined;
-	}
-
-	async function onsubmit(input: UpdateTagsInput) {
-		submitting = true;
-		errorMessage = undefined;
-
-		const outcome = await request('/expenses/tags', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(input)
-		});
-
-		if (outcome.ok) {
-			await invalidateAll();
-			tagging = undefined;
-			toast.success('Tag updated');
-		} else {
-			errorMessage =
-				outcome.error.kind === 'network'
-					? 'Unable to save the tag. Check your connection and try again.'
-					: outcome.error.message;
-		}
-
-		submitting = false;
 	}
 </script>
 
@@ -128,25 +63,15 @@
 		</div>
 	</div>
 
-	{#if grouped}
-		<GroupedExpense {groups} onAction={onGroupAction} />
-	{:else}
-		<AllExpenses expenses={data.expenses} onAction={onExpenseAction} />
-	{/if}
+	<ManageExpenses>
+		{#snippet children({ onExpenseAction, onGroupAction })}
+			{#if grouped}
+				<GroupedExpense {groups} {emptyMessage} onAction={onGroupAction} />
+			{:else}
+				<AllExpenses expenses={data.expenses} {emptyMessage} onAction={onExpenseAction} />
+			{/if}
+		{/snippet}
+	</ManageExpenses>
 </div>
 
-<Dialog.Root bind:open={() => tagging !== undefined, setDialogOpen}>
-	{#if tagging}
-		<UpdateTagsForm
-			refinedDescription={tagging.refinedDescription}
-			name={tagging.name}
-			{submitting}
-			{errorMessage}
-			{onsubmit}
-		/>
-	{/if}
-</Dialog.Root>
-
 <AddExpenseDialog bind:open={addingExpense} />
-<UpdateExpenseDialog bind:expense={editingExpense} />
-<DeleteExpenseDialog bind:expense={deletingExpense} />

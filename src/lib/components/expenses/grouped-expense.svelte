@@ -9,10 +9,11 @@
 
 	type Props = {
 		groups: ExpenseGroup[];
+		emptyMessage: string;
 		onAction: (action: ExpenseAction, group: ExpenseGroup) => void;
 	};
 
-	let { groups, onAction }: Props = $props();
+	let { groups, emptyMessage, onAction }: Props = $props();
 </script>
 
 <Table.Root containerClass="min-h-0 flex-1 overflow-y-auto">
@@ -48,7 +49,7 @@
 		{:else}
 			<Table.Row>
 				<Table.Cell colspan={5} class="text-muted-foreground text-center">
-					No expenses for this month
+					{emptyMessage}
 				</Table.Cell>
 			</Table.Row>
 		{/each}

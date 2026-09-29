@@ -4,21 +4,38 @@
 	import type { Expense } from '$lib/expenses';
 	import { formatCents } from '$lib/utils/amount';
 	import { formatDisplayDate } from '$lib/utils/date';
+	import { cn } from '$lib/utils/cn';
 
 	import type { ExpenseAction } from './expense-actions';
 	import ExpenseActions from './expense-actions.svelte';
 
 	type Props = {
 		expenses: Expense[];
+		emptyMessage: string;
 		onAction: (action: ExpenseAction, expense: Expense) => void;
+		descriptionSize?: 'xs' | 'sm';
+		lowercaseDescription?: boolean;
+		scrollable?: boolean;
+		headerHover?: boolean;
 	};
 
-	let { expenses, onAction }: Props = $props();
+	let {
+		expenses,
+		emptyMessage,
+		onAction,
+		descriptionSize = 'sm',
+		lowercaseDescription = true,
+		scrollable = true,
+		headerHover = true
+	}: Props = $props();
 </script>
 
-<Table.Root class="table-fixed" containerClass="min-h-0 flex-1 overflow-y-auto">
-	<Table.Header sticky>
-		<Table.Row>
+<Table.Root
+	class="table-fixed"
+	containerClass={scrollable ? 'min-h-0 flex-1 overflow-y-auto' : undefined}
+>
+	<Table.Header sticky={scrollable}>
+		<Table.Row class={headerHover ? undefined : 'hover:bg-transparent'}>
 			<Table.Head class="ps-4 pe-2 sm:w-7/20 sm:px-5">
 				<span class="sm:hidden">Expense</span>
 				<span class="hidden sm:inline">Title</span>
@@ -34,8 +51,16 @@
 	<Table.Body>
 		{#each expenses as expense (expense.id)}
 			<Table.Row>
-				<Table.Cell class="overflow-hidden ps-4 pe-2 py-3.5 align-top sm:px-5 sm:align-middle">
-					<p class="truncate text-sm font-medium lowercase">{expense.description}</p>
+				<Table.Cell class="overflow-hidden ps-4 pe-2 py-3.5 sm:px-5">
+					<p
+						class={cn(
+							'truncate font-medium',
+							descriptionSize === 'sm' ? 'text-sm' : 'text-xs',
+							lowercaseDescription && 'lowercase'
+						)}
+					>
+						{expense.description}
+					</p>
 					<div class="mt-1 flex min-w-0 items-center gap-2 sm:hidden">
 						<p class="text-muted-foreground shrink-0 text-xs">
 							{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
@@ -54,19 +79,17 @@
 				<Table.Cell class="text-muted-foreground hidden px-5 py-3.5 text-xs sm:table-cell">
 					{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
 				</Table.Cell>
-				<Table.Cell
-					class="px-2 py-3.5 text-right align-top font-medium tabular-nums sm:px-5 sm:align-middle"
-				>
+				<Table.Cell class="px-2 py-3.5 text-right font-medium tabular-nums sm:px-5">
 					{formatCents(expense.amount)}
 				</Table.Cell>
-				<Table.Cell class="px-1 py-3.5 text-right align-top sm:px-3 sm:align-middle">
+				<Table.Cell class="px-1 py-3.5 text-right sm:px-3">
 					<ExpenseActions onAction={(action) => onAction(action, expense)} />
 				</Table.Cell>
 			</Table.Row>
 		{:else}
 			<Table.Row>
 				<Table.Cell colspan={5} class="text-muted-foreground px-5 py-8 text-center">
-					No expenses for this month
+					{emptyMessage}
 				</Table.Cell>
 			</Table.Row>
 		{/each}

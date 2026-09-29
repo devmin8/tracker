@@ -8,25 +8,22 @@
 
 	import { UpdateTagsSchema, type UpdateTagsInput } from './update-tags-form.schema';
 
+	export type UpdateTagsFailure = {
+		message: string;
+	};
+
 	type Props = {
 		refinedDescription: string;
 		name?: string | null;
-		submitting?: boolean;
-		errorMessage?: string;
-		onsubmit: (input: UpdateTagsInput) => Promise<void>;
+		onsubmit: (input: UpdateTagsInput) => Promise<UpdateTagsFailure | void>;
 	};
 
-	let {
-		refinedDescription,
-		name: existingName,
-		submitting = false,
-		errorMessage,
-		onsubmit
-	}: Props = $props();
+	let { refinedDescription, name: existingName, onsubmit }: Props = $props();
 
 	let form: HTMLFormElement;
 	let name = $derived(existingName ?? '');
-
+	let submitting = $state(false);
+	let errorMessage = $state<string | undefined>();
 	let validationMessage = $state<string>();
 
 	async function handleSubmit(event: SubmitEvent) {
@@ -39,7 +36,17 @@
 		}
 
 		validationMessage = undefined;
-		await onsubmit(result.output);
+		errorMessage = undefined;
+		submitting = true;
+
+		try {
+			const failure = await onsubmit(result.output);
+			if (failure) errorMessage = failure.message;
+		} catch {
+			errorMessage = 'Unable to save the tag. Please try again.';
+		} finally {
+			submitting = false;
+		}
 	}
 </script>
 
