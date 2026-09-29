@@ -46,7 +46,7 @@
 	const minBound = $derived(parseYearMonth(min));
 	const maxBound = $derived(parseYearMonth(max));
 	const displayValue = $derived(
-		selected ? `${MONTH_NAMES[selected.month - 1]} ${selected.year}` : placeholder
+		selected ? `${MONTH_NAMES_SHORT[selected.month - 1]} ${selected.year}` : placeholder
 	);
 	const canGoToPreviousYear = $derived(!minBound || viewYear > minBound.year);
 	const canGoToNextYear = $derived(!maxBound || viewYear < maxBound.year);
