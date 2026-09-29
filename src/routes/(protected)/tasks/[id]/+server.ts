@@ -1,17 +1,14 @@
 import { json } from '@sveltejs/kit';
 import * as v from 'valibot';
 
-import { TaskIdSchema } from '$lib/schemas/task-id.schema';
 import { UpdateTaskSchema } from '$lib/schemas/update-task.schema';
 import { db } from '$lib/server/db';
 import { apiError, badRequest, protectedApi, readJson, validationError } from '$lib/server/http';
 import { deleteTask, updateTask } from '$lib/server/tasks';
 
 export const PUT = protectedApi(async ({ params, request }, user) => {
-	const id = v.safeParse(TaskIdSchema, params.id);
-	if (!id.success) {
-		return validationError(id.issues, 'Task not found');
-	}
+	const taskId = params.id;
+	if (!taskId) return apiError(404, 'Task not found');
 
 	const body = await readJson(request);
 	if (!body.ok) {
@@ -23,7 +20,7 @@ export const PUT = protectedApi(async ({ params, request }, user) => {
 		return validationError(parsed.issues, 'Please check the task details');
 	}
 
-	const result = await updateTask(db, user.id, id.output, parsed.output);
+	const result = await updateTask(db, user.id, taskId, parsed.output);
 	if (!result.ok) {
 		return result.message === 'Task not found'
 			? apiError(404, result.message)
@@ -34,12 +31,10 @@ export const PUT = protectedApi(async ({ params, request }, user) => {
 });
 
 export const DELETE = protectedApi(async ({ params }, user) => {
-	const parsed = v.safeParse(TaskIdSchema, params.id);
-	if (!parsed.success) {
-		return validationError(parsed.issues, 'Task not found');
-	}
+	const taskId = params.id;
+	if (!taskId) return apiError(404, 'Task not found');
 
-	const result = await deleteTask(db, user.id, parsed.output);
+	const result = await deleteTask(db, user.id, taskId);
 	if (!result.ok) {
 		return apiError(404, result.message);
 	}
