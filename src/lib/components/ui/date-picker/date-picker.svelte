@@ -8,10 +8,10 @@
 	import { Calendar } from '$lib/components/ui/calendar';
 	import * as Popover from '$lib/components/ui/popover';
 	import { cn } from '$lib/utils/cn';
-	import { formatDateString } from '$lib/utils/date';
+	import { normalizeIsoDate } from '$lib/utils/date';
 
 	type DatePickerProps = {
-		/** A calendar date in `yyyy-MM-dd` form. */
+		/** An ISO calendar date (`yyyy-MM-dd`). */
 		value?: string;
 		placeholder?: string;
 		disabled?: boolean;
@@ -31,7 +31,7 @@
 	let trigger = $state<HTMLButtonElement | null>(null);
 
 	const selectedDate = $derived.by(() => {
-		const normalized = value ? formatDateString(value) : null;
+		const normalized = value ? normalizeIsoDate(value) : null;
 		return normalized ? parseDate(normalized) : undefined;
 	});
 

@@ -9,7 +9,8 @@
 		variants: {
 			variant: {
 				default: 'border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300',
-				secondary: 'border-border bg-muted text-muted-foreground'
+				secondary: 'border-border bg-muted text-muted-foreground',
+				destructive: 'border-destructive/20 bg-destructive/10 text-destructive'
 			}
 		},
 		defaultVariants: {
