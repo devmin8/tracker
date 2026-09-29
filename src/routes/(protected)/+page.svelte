@@ -125,8 +125,6 @@
 						expenses={data.recentExpenses}
 						onAction={onExpenseAction}
 						emptyMessage="No expenses recorded this month."
-						descriptionSize="xs"
-						lowercaseDescription={false}
 						scrollable={false}
 						headerHover={false}
 					/>

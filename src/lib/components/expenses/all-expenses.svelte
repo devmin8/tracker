@@ -4,7 +4,6 @@
 	import type { Expense } from '$lib/expenses';
 	import { formatCents } from '$lib/utils/amount';
 	import { formatDisplayDate } from '$lib/utils/date';
-	import { cn } from '$lib/utils/cn';
 
 	import type { ExpenseAction } from './expense-actions';
 	import ExpenseActions from './expense-actions.svelte';
@@ -13,8 +12,6 @@
 		expenses: Expense[];
 		emptyMessage: string;
 		onAction: (action: ExpenseAction, expense: Expense) => void;
-		descriptionSize?: 'xs' | 'sm';
-		lowercaseDescription?: boolean;
 		scrollable?: boolean;
 		headerHover?: boolean;
 	};
@@ -23,8 +20,6 @@
 		expenses,
 		emptyMessage,
 		onAction,
-		descriptionSize = 'sm',
-		lowercaseDescription = true,
 		scrollable = true,
 		headerHover = true
 	}: Props = $props();
@@ -52,13 +47,7 @@
 		{#each expenses as expense (expense.id)}
 			<Table.Row>
 				<Table.Cell class="overflow-hidden ps-4 pe-2 py-3.5 sm:px-5">
-					<p
-						class={cn(
-							'truncate font-medium',
-							descriptionSize === 'sm' ? 'text-sm' : 'text-xs',
-							lowercaseDescription && 'lowercase'
-						)}
-					>
+					<p class="truncate font-medium text-xs sm:text-[15px]">
 						{expense.description}
 					</p>
 					<div class="mt-1 flex min-w-0 items-center gap-2 sm:hidden">
@@ -66,7 +55,7 @@
 							{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
 						</p>
 						<Badge
-							class="max-w-24 min-w-0 shrink overflow-hidden px-1.5"
+							class="max-w-24 min-w-0 shrink overflow-hidden px-1.5 sm:text-[13px]"
 							variant={expense.tag ? 'default' : 'secondary'}
 						>
 							<span class="truncate">{expense.tag ?? 'Untagged'}</span>
@@ -74,9 +63,13 @@
 					</div>
 				</Table.Cell>
 				<Table.Cell class="hidden px-5 py-3.5 sm:table-cell">
-					<Badge variant={expense.tag ? 'default' : 'secondary'}>{expense.tag ?? 'Untagged'}</Badge>
+					<Badge class="sm:text-[13px]" variant={expense.tag ? 'default' : 'secondary'}>
+						{expense.tag ?? 'Untagged'}
+					</Badge>
 				</Table.Cell>
-				<Table.Cell class="text-muted-foreground hidden px-5 py-3.5 text-xs sm:table-cell">
+				<Table.Cell
+					class="text-muted-foreground hidden px-5 py-3.5 text-xs sm:table-cell sm:text-[13px]"
+				>
 					{formatDisplayDate(expense.expenseDate) ?? expense.expenseDate}
 				</Table.Cell>
 				<Table.Cell class="px-2 py-3.5 text-right font-medium tabular-nums sm:px-5">
