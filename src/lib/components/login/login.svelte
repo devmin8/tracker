@@ -31,7 +31,6 @@
 					<FieldError errors={[{ message: errorMessage }]} />
 				{/if}
 
-				<!-- TODO: remove the hardcoded value -->
 				<Field>
 					<FieldLabel>Email</FieldLabel>
 					<Input
@@ -40,11 +39,9 @@
 						placeholder="m@example.com"
 						autocomplete="email"
 						required
-						value="test@test.com"
 					/>
 				</Field>
 
-				<!-- TODO: remove the hardcoded value -->
 				<Field>
 					<FieldLabel>Password</FieldLabel>
 					<Input
@@ -53,7 +50,6 @@
 						autocomplete="current-password"
 						required
 						maxlength={90}
-						value="test@123"
 					/>
 				</Field>
 
