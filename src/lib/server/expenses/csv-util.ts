@@ -15,7 +15,7 @@
 import Papa from 'papaparse';
 
 import { toCents } from '$lib/utils/amount';
-import { formatDateString } from '$lib/utils/date';
+import { normalizeIsoDate } from '$lib/utils/date';
 
 export type CleansedExpense = {
 	expenseDate: string;
@@ -52,7 +52,7 @@ function toExpense(cols: string[]): CleansedExpense | null {
 	const [rawDate = '', rawDescription = '', rawAmount = ''] = cols;
 	const description = rawDescription.trim();
 	const amount = toCents(rawAmount);
-	const expenseDate = formatDateString(rawDate);
+	const expenseDate = normalizeIsoDate(rawDate);
 
 	if (amount === null) return null;
 	if (!description || INTERNAL_TRANSFER.test(description)) return null;

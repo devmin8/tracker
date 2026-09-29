@@ -8,7 +8,7 @@
 	import { FieldGroup, Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { todayDateString } from '$lib/utils/date';
+	import { todayIsoDate } from '$lib/utils/date';
 	import type { FormValues } from '$lib/utils/form';
 
 	type Props = {
@@ -20,7 +20,7 @@
 	let { submitting = false, errorMessage, onsubmit }: Props = $props();
 
 	let form: HTMLFormElement;
-	let expenseDate = $state(todayDateString());
+	let expenseDate = $state(todayIsoDate());
 	let validationMessage = $state<string>();
 
 	async function handleSubmit(event: SubmitEvent) {

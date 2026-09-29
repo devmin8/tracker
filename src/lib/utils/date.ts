@@ -70,7 +70,7 @@ export function currentYearMonth(): YearMonth {
 	return formatYearMonth(currentYearMonthParts());
 }
 
-export function todayDateString(now = new Date()) {
+export function todayIsoDate(now = new Date()) {
 	return format(now, 'yyyy-MM-dd');
 }
 
@@ -111,7 +111,7 @@ export function yearMonthRange(month: YearMonth) {
 
 const DATE_FORMATS = ['yyyy-MM-dd', 'MM/dd/yyyy'] as const;
 
-export function formatDateString(value: string) {
+export function normalizeIsoDate(value: string) {
 	const trimmed = value.trim();
 
 	for (const dateFormat of DATE_FORMATS) {

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 
 import { toCents } from '$lib/utils/amount';
-import { formatDateString } from '$lib/utils/date';
+import { normalizeIsoDate } from '$lib/utils/date';
 
 function optionalBlank(value: string | undefined) {
 	const trimmed = value?.trim() ?? '';
@@ -21,8 +21,8 @@ export const UpdateExpenseSchema = v.pipe(
 			v.string(),
 			v.trim(),
 			v.nonEmpty('Date is required'),
-			v.check((value) => formatDateString(value) !== null, 'Enter a valid date'),
-			v.transform((value) => formatDateString(value) as string)
+			v.check((value) => normalizeIsoDate(value) !== null, 'Enter a valid date'),
+			v.transform((value) => normalizeIsoDate(value) as string)
 		),
 		comments: v.optional(v.string())
 	}),

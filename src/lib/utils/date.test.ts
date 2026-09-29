@@ -3,13 +3,13 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
 	compareYearMonths,
 	currentYearMonth,
-	formatDateString,
 	formatDisplayDate,
+	normalizeIsoDate,
 	formatYearMonth,
 	parseYearMonth,
 	previousYearMonth,
 	resolveYearMonth,
-	todayDateString,
+	todayIsoDate,
 	yearMonthRange
 } from './date';
 
@@ -105,27 +105,27 @@ describe('yearMonthRange', () => {
 	});
 });
 
-describe('todayDateString', () => {
+describe('todayIsoDate', () => {
 	test('formats the local calendar date as YYYY-MM-DD', () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(2026, 8, 13, 23, 30));
 
-		expect(todayDateString()).toBe('2026-09-13');
+		expect(todayIsoDate()).toBe('2026-09-13');
 	});
 });
 
-describe('formatDateString', () => {
+describe('normalizeIsoDate', () => {
 	test('normalizes supported date formats to YYYY-MM-DD', () => {
-		expect(formatDateString('2026-03-23')).toBe('2026-03-23');
-		expect(formatDateString('07/18/2026')).toBe('2026-07-18');
-		expect(formatDateString(' 07/18/2026 ')).toBe('2026-07-18');
+		expect(normalizeIsoDate('2026-03-23')).toBe('2026-03-23');
+		expect(normalizeIsoDate('07/18/2026')).toBe('2026-07-18');
+		expect(normalizeIsoDate(' 07/18/2026 ')).toBe('2026-07-18');
 	});
 
 	test('rejects unsupported or invalid dates', () => {
-		expect(formatDateString('')).toBeNull();
-		expect(formatDateString('not-a-date')).toBeNull();
-		expect(formatDateString('18/07/2026')).toBeNull();
-		expect(formatDateString('2026-13-01')).toBeNull();
+		expect(normalizeIsoDate('')).toBeNull();
+		expect(normalizeIsoDate('not-a-date')).toBeNull();
+		expect(normalizeIsoDate('18/07/2026')).toBeNull();
+		expect(normalizeIsoDate('2026-13-01')).toBeNull();
 	});
 });
 
