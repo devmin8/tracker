@@ -7,9 +7,13 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { isNavGroup, navItems } from '$lib/components/layout/utils';
 
-	type Props = ComponentProps<typeof Sidebar.Root>;
+	import NavUser, { type SidebarUser } from './nav-user.svelte';
 
-	let { ref = $bindable(null), ...restProps }: Props = $props();
+	type Props = ComponentProps<typeof Sidebar.Root> & {
+		user: SidebarUser;
+	};
+
+	let { ref = $bindable(null), user, ...restProps }: Props = $props();
 
 	const pathname = $derived(page.url.pathname);
 
@@ -79,5 +83,8 @@
 			</Sidebar.Menu>
 		</Sidebar.Group>
 	</Sidebar.Content>
+	<Sidebar.Footer>
+		<NavUser {user} />
+	</Sidebar.Footer>
 	<Sidebar.Rail />
 </Sidebar.Root>
