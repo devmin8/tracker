@@ -14,7 +14,9 @@ An expense tracker application build for my personal use using sveltekit.
 
 - Run `db:push` to push schema changes directly to the database.
 - Run `db:generate` to generate SQL migration files from schema changes.
-- Run `db:migrate` to apply generated migrations to the database.
+- Run `pnpm cli migrate-db` to apply generated migrations to the database.
+- Run `pnpm cli reset-db --email <email> --name <name>` to delete the database, re-apply migrations and create a user (password prompt).
+- Run `pnpm cli create-user --email <email> --name <name>` to create a user (password prompt).
 
 # Docker
 
@@ -26,5 +28,5 @@ docker compose up
 Open http://localhost:3000. Public signup is disabled; create a user in the running container (password prompt):
 
 ```bash
-docker exec -it <container_id> node build/scripts/create-user.js --email you@example.com  --name "Your Name"
+docker exec -it <container_id> node build/cli/main.js create-user --email you@example.com  --name "Your Name"
 ```

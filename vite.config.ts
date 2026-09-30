@@ -22,10 +22,14 @@ export default defineConfig({
 			// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 			adapter: adapter(),
 
+			alias: {
+				$cli: 'cli'
+			},
+
 			typescript: {
 				config: (config) => {
 					config.include.push('../drizzle.config.ts');
-					config.include.push('../scripts/**/*.ts');
+					config.include.push('../cli/**/*.ts');
 				}
 			}
 		})

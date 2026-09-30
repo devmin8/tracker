@@ -55,4 +55,4 @@ VOLUME /app/data
 #   Without exec: PID 1 is sh. The shell usually does not pass that on to Node. Docker waits, then kills the container.
 #   With exec: the shell is gone, so Node is PID 1. Docker’s SIGTERM lands on Node. Node shuts down and exits; Docker sees the
 #   container stop.
-CMD ["sh", "-c", "node build/scripts/migrate.js && exec node build/index.js"]
+CMD ["sh", "-c", "node build/cli/main.js migrate-db && exec node build/index.js"]

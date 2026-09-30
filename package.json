@@ -7,7 +7,7 @@
 		"test": "vitest",
 		"dev": "PORTLESS_HTTPS=0 portless run vite dev",
 		"build": "vite build && pnpm build:script",
-		"build:script": "esbuild scripts/create-user.ts scripts/migrate.ts --bundle --platform=node --format=esm --external:@libsql/client --alias:\\$lib=./src/lib --outdir=build/scripts",
+		"build:script": "esbuild cli/main.ts --bundle --platform=node --format=esm --target=node24 --external:@libsql/client --alias:\\$lib=./src/lib --alias:\\$cli=./cli --outdir=build/cli",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -16,8 +16,7 @@
 		"format": "prettier --write .",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "tsx ./scripts/migrate.ts",
-		"create-user": "tsx ./scripts/create-user.ts"
+		"cli": "tsx ./cli/main.ts"
 	},
 	"devDependencies": {
 		"@better-auth/drizzle-adapter": "1.7.3",
