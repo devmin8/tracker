@@ -12,12 +12,15 @@ export const POST = protectedApi(async ({ request }, user) => {
 		return badRequest('Please check the import details');
 	}
 
-	const form = v.safeParse(ImportExpensesFormSchema, Object.fromEntries(formData.result));
+	const form = v.safeParse(ImportExpensesFormSchema, {
+		files: formData.result.getAll('files'),
+		month: formData.result.get('month')
+	});
 	if (!form.success) {
 		return validationError(form.issues, 'Please check the import details');
 	}
 
-	const result = await importExpenses(db, user.id, form.output.file, form.output.month);
+	const result = await importExpenses(db, user.id, form.output.files, form.output.month);
 	if (!result.ok) {
 		return badRequest(result.message);
 	}

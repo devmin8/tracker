@@ -8,6 +8,7 @@
 	import { MonthPicker } from '$lib/components/ui/month-picker';
 	import { Progress } from '$lib/components/ui/progress';
 	import { currentYearMonth } from '$lib/utils/date';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 	import { xhr } from '$lib/utils/xhr';
 
 	type UploadStatus = 'pending' | 'uploading' | 'error';
@@ -57,37 +58,43 @@
 			(file) => file.status === 'pending' || file.status === 'error'
 		);
 
-		await Promise.all(filesToUpload.map(uploadFile));
-	}
-
-	async function uploadFile(uploadedFile: UploadedFile) {
-		const { file } = uploadedFile;
-		uploadedFile.progress = 0;
-		uploadedFile.status = 'uploading';
+		if (isUploading || filesToUpload.length === 0) return;
 
 		const formData = new FormData();
-		formData.append('file', file);
+		for (const uploadedFile of filesToUpload) {
+			uploadedFile.progress = 0;
+			uploadedFile.status = 'uploading';
+			formData.append('files', uploadedFile.file);
+		}
 		formData.append('month', month);
 
-		try {
-			const result = await xhr<{ rowCount: number }>({
+		const result = await safeResolve(() =>
+			xhr<{ rowCount: number }>({
 				url: '/expenses/upload',
 				body: formData,
 				onProgress: (progress) => {
-					uploadedFile.progress = progress;
+					for (const uploadedFile of filesToUpload) {
+						uploadedFile.progress = progress;
+					}
 				}
-			});
+			})
+		);
 
-			uploadedFile.progress = 100;
-			toast.success(`${result.rowCount} data rows uploaded`, { description: file.name });
-			removeFile(uploadedFile.id);
-		} catch (error) {
-			uploadedFile.status = 'error';
-			uploadedFile.progress = 0;
-			toast.error(`${file.name} failed to upload`, {
-				description: error instanceof Error ? error.message : 'Upload failed'
+		if (!result.ok) {
+			for (const uploadedFile of filesToUpload) {
+				uploadedFile.status = 'error';
+				uploadedFile.progress = 0;
+			}
+			toast.error('Files failed to upload', {
+				description: result.error instanceof Error ? result.error.message : 'Upload failed'
 			});
+			return;
 		}
+
+		toast.success(`${result.result.rowCount} data rows uploaded`);
+		files = files.filter(
+			(file) => !filesToUpload.some((uploadedFile) => uploadedFile.id === file.id)
+		);
 	}
 
 	function removeFile(id: string) {
@@ -101,7 +108,7 @@
 		{onFileRejected}
 		maxFileSize={1 * FileDropZone.MEGABYTE}
 		accept=".csv,text/csv"
-		maxFiles={1}
+		disabled={isUploading}
 		fileCount={files.length}
 	>
 		<FileDropZone.Trigger />
@@ -111,6 +118,7 @@
 		<div class="flex items-center justify-end gap-2">
 			<MonthPicker
 				class="w-48"
+				disabled={isUploading}
 				bind:value={month}
 				max={currentYearMonth()}
 				ariaLabel="Month to replace"

@@ -18,19 +18,29 @@ type ParsedImport = { month: YearMonth; expenses: CleansedExpense[] };
 export type ImportResult = { ok: true; rowCount: number } | ImportError;
 export type ParseImportResult = ({ ok: true } & ParsedImport) | ImportError;
 
-export async function parseImportedFile(file: File, month: YearMonth): Promise<ParseImportResult> {
-	const csvFile = validateCsvFile(file);
-	if (!csvFile.ok) {
-		return csvFile;
-	}
-
-	const parsed = parseExpenseCsv(await file.text());
-	if (!parsed.ok) {
-		return { ok: false, message: 'The CSV could not be parsed' };
+export async function parseImportedFiles(
+	files: File[],
+	month: YearMonth
+): Promise<ParseImportResult> {
+	if (files.length === 0) {
+		return { ok: false, message: 'At least one CSV file is required' };
 	}
 
 	const { includes } = monthBounds(month);
-	const expenses = parsed.expenses.filter((row) => includes(row.expenseDate));
+	const expenses: CleansedExpense[] = [];
+	for (const file of files) {
+		const csvFile = validateCsvFile(file);
+		if (!csvFile.ok) {
+			return { ok: false, message: `${file.name}: ${csvFile.message}` };
+		}
+
+		const parsed = parseExpenseCsv(await file.text());
+		if (!parsed.ok) {
+			return { ok: false, message: `${file.name}: The CSV could not be parsed` };
+		}
+
+		expenses.push(...parsed.expenses.filter((row) => includes(row.expenseDate)));
+	}
 	if (expenses.length === 0) {
 		return {
 			ok: false,
@@ -44,10 +54,10 @@ export async function parseImportedFile(file: File, month: YearMonth): Promise<P
 export async function importExpenses(
 	db: Database,
 	userId: string,
-	file: File,
+	files: File[],
 	month: YearMonth
 ): Promise<ImportResult> {
-	const parsed = await parseImportedFile(file, month);
+	const parsed = await parseImportedFiles(files, month);
 	if (!parsed.ok) {
 		return parsed;
 	}
