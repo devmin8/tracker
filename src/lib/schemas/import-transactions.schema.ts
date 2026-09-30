@@ -4,7 +4,7 @@ import { formatYearMonth, parseYearMonth } from '$lib/utils/date';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024;
 
-export const ImportExpensesFormSchema = v.object({
+export const ImportTransactionsSchema = v.object({
 	files: v.pipe(
 		v.array(
 			v.pipe(

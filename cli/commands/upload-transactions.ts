@@ -43,9 +43,9 @@ type UploadResponse = {
 	message?: string;
 };
 
-const uploadExpenseDefinition = {
-	name: 'upload-expense',
-	title: 'Upload expenses',
+const uploadTransactionsDefinition = {
+	name: 'upload-transactions',
+	title: 'Upload transactions',
 	description: 'Upload CSV statements, grouping files that overlap the same calendar month.',
 	arguments: [
 		{
@@ -74,7 +74,7 @@ const uploadExpenseDefinition = {
 	]
 } satisfies CommandDefinition;
 
-const UploadExpenseInput = v.object({
+const UploadTransactionsInput = v.object({
 	folder: v.pipe(v.string(), v.nonEmpty('A folder is required'), v.transform(resolve)),
 	cookie: v.pipe(
 		v.string('A session cookie is required'),
@@ -194,7 +194,7 @@ async function uploadMonth(baseUrl: string, cookie: string, upload: MonthUpload)
 	}
 	form.append('month', upload.month);
 
-	const response = await fetch(`${baseUrl}/expenses/upload`, {
+	const response = await fetch(`${baseUrl}/transactions/upload`, {
 		method: 'POST',
 		headers: {
 			Cookie: cookie,
@@ -216,11 +216,15 @@ async function uploadMonth(baseUrl: string, cookie: string, upload: MonthUpload)
 	return body?.rowCount ?? 0;
 }
 
-@command(uploadExpenseDefinition)
-export class UploadExpenseCommand extends Command<typeof UploadExpenseInput> {
-	readonly schema = UploadExpenseInput;
+@command(uploadTransactionsDefinition)
+export class UploadTransactionsCommand extends Command<typeof UploadTransactionsInput> {
+	readonly schema = UploadTransactionsInput;
 
-	protected async execute({ folder, cookie, baseUrl }: v.InferOutput<typeof UploadExpenseInput>) {
+	protected async execute({
+		folder,
+		cookie,
+		baseUrl
+	}: v.InferOutput<typeof UploadTransactionsInput>) {
 		const files = await loadCsvFiles(folder, new Date());
 		const uploads = groupFilesByMonth(files);
 

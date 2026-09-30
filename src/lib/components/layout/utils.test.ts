@@ -10,7 +10,7 @@ describe('navigation', () => {
 			title: 'Expenses',
 			items: [
 				{ title: 'View expenses', url: '/expenses/list' },
-				{ title: 'Upload Expenses', url: '/expenses/upload' }
+				{ title: 'Upload Transactions', url: '/transactions/upload' }
 			]
 		});
 	});
@@ -19,6 +19,10 @@ describe('navigation', () => {
 		expect(breadcrumbsFor('/expenses/list')).toEqual([
 			{ label: 'Expenses' },
 			{ label: 'View expenses' }
+		]);
+		expect(breadcrumbsFor('/transactions/upload')).toEqual([
+			{ label: 'Expenses' },
+			{ label: 'Upload Transactions' }
 		]);
 	});
 });

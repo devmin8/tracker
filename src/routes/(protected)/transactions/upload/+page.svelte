@@ -70,7 +70,7 @@
 
 		const result = await safeResolve(() =>
 			xhr<{ rowCount: number }>({
-				url: '/expenses/upload',
+				url: '/transactions/upload',
 				body: formData,
 				onProgress: (progress) => {
 					for (const uploadedFile of filesToUpload) {

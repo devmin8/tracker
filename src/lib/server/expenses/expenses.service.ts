@@ -51,7 +51,7 @@ export async function parseImportedFiles(
 	return { ok: true, month, expenses };
 }
 
-export async function importExpenses(
+export async function importTransactions(
 	db: Database,
 	userId: string,
 	files: File[],

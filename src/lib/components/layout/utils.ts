@@ -37,7 +37,7 @@ export const navItems: NavItem[] = [
 		title: 'Expenses',
 		items: [
 			{ title: 'View expenses', url: '/expenses/list' },
-			{ title: 'Upload Expenses', url: '/expenses/upload' }
+			{ title: 'Upload Transactions', url: '/transactions/upload' }
 		]
 	},
 	{
