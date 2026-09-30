@@ -28,5 +28,5 @@ docker compose up
 Open http://localhost:3000. Public signup is disabled; create a user in the running container (password prompt):
 
 ```bash
-docker exec -it <container_id> node build/cli/main.js create-user --email you@example.com  --name "Your Name"
+docker exec -it <container_id> node build/cli/main.js create-user --email you@example.com --name "Your Name"
 ```
