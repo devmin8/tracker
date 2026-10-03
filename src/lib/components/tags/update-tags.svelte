@@ -53,7 +53,7 @@
 <Dialog.Content class="sm:max-w-sm">
 	<Dialog.Header>
 		<Dialog.Title>Update tag</Dialog.Title>
-		<Dialog.Description>{refinedDescription}</Dialog.Description>
+		<Dialog.Description class="lowercase">{refinedDescription}</Dialog.Description>
 	</Dialog.Header>
 	<form bind:this={form} onsubmit={handleSubmit} class="flex flex-col gap-6">
 		<input type="hidden" name="refinedDescription" value={refinedDescription} />

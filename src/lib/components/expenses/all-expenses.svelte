@@ -16,13 +16,7 @@
 		headerHover?: boolean;
 	};
 
-	let {
-		expenses,
-		emptyMessage,
-		onAction,
-		scrollable = true,
-		headerHover = true
-	}: Props = $props();
+	let { expenses, emptyMessage, onAction, scrollable = true, headerHover = true }: Props = $props();
 </script>
 
 <Table.Root
@@ -47,7 +41,7 @@
 		{#each expenses as expense (expense.id)}
 			<Table.Row>
 				<Table.Cell class="overflow-hidden ps-4 pe-2 py-3.5 sm:px-5">
-					<p class="truncate font-medium text-xs sm:text-[15px]">
+					<p class="truncate font-medium text-xs lowercase sm:text-[15px]">
 						{expense.description}
 					</p>
 					<div class="mt-1 flex min-w-0 items-center gap-2 sm:hidden">

@@ -61,8 +61,8 @@
 			<Dialog.Header>
 				<Dialog.Title>Delete expense</Dialog.Title>
 				<Dialog.Description>
-					This will permanently delete {expense.description} ({formatCents(expense.amount)}). This
-					cannot be undone.
+					This will permanently delete <span class="lowercase">{expense.description}</span>
+					({formatCents(expense.amount)}). This cannot be undone.
 				</Dialog.Description>
 			</Dialog.Header>
 
