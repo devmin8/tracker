@@ -4,7 +4,12 @@ import * as v from 'valibot';
 import { UpdateTagsSchema } from '$lib/components/tags/update-tags-form.schema';
 import { db } from '$lib/server/db';
 import { badRequest, protectedApi, readJson, validationError } from '$lib/server/http';
-import { updateTags } from '$lib/server/tags';
+import { listTagNames, updateTags } from '$lib/server/tags';
+
+export const GET = protectedApi(async (_event, user) => {
+	const tags = await listTagNames(db, user.id);
+	return json({ tags });
+});
 
 export const POST = protectedApi(async ({ request }, user) => {
 	const body = await readJson(request);

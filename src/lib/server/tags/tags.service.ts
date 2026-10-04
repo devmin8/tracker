@@ -1,5 +1,7 @@
+import { and, asc, eq, isNull } from 'drizzle-orm';
+
 import type { Database } from '$lib/server/db/create-db';
-import { descriptionTag, tag } from '$lib/server/db/schema';
+import { descriptionTag, expense, tag } from '$lib/server/db/schema';
 
 type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 type UpdateTagsInput = {
@@ -46,4 +48,58 @@ export async function updateTags(
 	});
 
 	return tagId;
+}
+
+export async function listTagNames(db: Database, userId: string): Promise<string[]> {
+	const rows = await db
+		.select({ name: tag.name })
+		.from(tag)
+		.where(eq(tag.userId, userId))
+		.orderBy(asc(tag.name));
+
+	return rows.map((row) => row.name);
+}
+
+export type UntaggedVisit = {
+	expenseDate: string;
+	amount: number;
+};
+
+export type UntaggedDescription = {
+	refinedDescription: string;
+	visits: UntaggedVisit[];
+};
+
+export async function listUntaggedDescriptions(
+	db: Database,
+	userId: string
+): Promise<UntaggedDescription[]> {
+	const rows = await db
+		.select({
+			refinedDescription: expense.refinedDescription,
+			expenseDate: expense.expenseDate,
+			amount: expense.amount
+		})
+		.from(expense)
+		.leftJoin(
+			descriptionTag,
+			and(
+				eq(descriptionTag.userId, expense.createdBy),
+				eq(descriptionTag.refinedDescription, expense.refinedDescription)
+			)
+		)
+		.where(and(eq(expense.createdBy, userId), isNull(descriptionTag.tagId)))
+		.orderBy(asc(expense.refinedDescription), asc(expense.expenseDate));
+
+	const visitsByDescription = new Map<string, UntaggedVisit[]>();
+	for (const { refinedDescription, expenseDate, amount } of rows) {
+		const visits = visitsByDescription.get(refinedDescription) ?? [];
+		visits.push({ expenseDate, amount });
+		visitsByDescription.set(refinedDescription, visits);
+	}
+
+	return [...visitsByDescription].map(([refinedDescription, visits]) => ({
+		refinedDescription,
+		visits
+	}));
 }

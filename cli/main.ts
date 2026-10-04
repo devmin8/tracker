@@ -2,6 +2,7 @@ import { Cli } from './utils/cli';
 import { CreateUserCommand } from './commands/create-user';
 import { MigrateDbCommand } from './commands/migrate-db';
 import { ResetDbCommand } from './commands/reset-db';
+import { UpdateTagCommand } from './commands/update-tag';
 import { UploadExpenseCommand } from './commands/upload-expense';
 import { UploadTransactionsCommand } from './commands/upload-transactions';
 
@@ -11,6 +12,7 @@ const cli = new Cli({
 })
 	.register(UploadTransactionsCommand)
 	.register(UploadExpenseCommand)
+	.register(UpdateTagCommand)
 	.register(MigrateDbCommand)
 	.register(CreateUserCommand)
 	.register(ResetDbCommand);
