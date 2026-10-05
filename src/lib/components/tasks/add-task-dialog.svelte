@@ -6,6 +6,7 @@
 	import type { TaskAssignee } from '$lib/tasks/assignee';
 	import type { FormValues } from '$lib/utils/form';
 	import { request } from '$lib/utils/request';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	import AddTaskForm from './add-task.svelte';
 
@@ -19,33 +20,45 @@
 
 	let submitting = $state(false);
 	let errorMessage = $state<string | undefined>();
+	let dialogVersion = 0;
 
 	function onOpenChange(next: boolean) {
-		if (!next) errorMessage = undefined;
+		if (next) return;
+		dialogVersion += 1;
+		errorMessage = undefined;
+		submitting = false;
 	}
 
 	async function onsubmit(input: FormValues) {
+		if (submitting) return;
+		const submittedVersion = dialogVersion;
 		submitting = true;
 		errorMessage = undefined;
 
-		const outcome = await request<{ id: string }>('/tasks/add', {
+		const outcome = await request('/tasks/add', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(input)
 		});
 
-		if (outcome.ok) {
-			await invalidateAll();
-			open = false;
-			toast.success('Task created');
-		} else {
+		const refreshed = outcome.ok ? await safeResolve(invalidateAll) : undefined;
+		if (dialogVersion !== submittedVersion) return;
+		submitting = false;
+
+		if (!outcome.ok) {
 			errorMessage =
 				outcome.error.kind === 'network'
 					? 'Unable to save the task. Check your connection and try again.'
 					: outcome.error.message;
+			return;
 		}
 
-		submitting = false;
+		open = false;
+		if (!refreshed?.ok) {
+			toast.error('Task created, but the page could not be refreshed. Please reload the page.');
+			return;
+		}
+		toast.success('Task created');
 	}
 </script>
 

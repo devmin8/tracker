@@ -8,6 +8,7 @@
 	import type { DeletableTask } from '$lib/tasks/task-item';
 	import { formatDisplayDate } from '$lib/utils/date';
 	import { request } from '$lib/utils/request';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	type Props = {
 		task: DeletableTask | undefined;
@@ -26,27 +27,35 @@
 	}
 
 	async function confirmDelete() {
-		if (!task) return;
+		if (!task || submitting) return;
 
+		const current = task;
 		submitting = true;
 		errorMessage = undefined;
 
-		const outcome = await request(`/tasks/${task.id}`, {
+		const outcome = await request(`/tasks/${current.id}`, {
 			method: 'DELETE'
 		});
 
-		if (outcome.ok) {
-			await invalidateAll();
-			task = undefined;
-			toast.success('Task deleted');
-		} else {
+		const refreshed = outcome.ok ? await safeResolve(invalidateAll) : undefined;
+		if (task !== current) return;
+		submitting = false;
+
+		if (!outcome.ok) {
 			errorMessage =
 				outcome.error.kind === 'network'
 					? 'Unable to delete the task. Check your connection and try again.'
 					: outcome.error.message;
+			return;
 		}
 
-		submitting = false;
+		task = undefined;
+		if (!refreshed?.ok) {
+			toast.error('Task deleted, but the page could not be refreshed. Please reload the page.');
+			return;
+		}
+
+		toast.success('Task deleted');
 	}
 </script>
 

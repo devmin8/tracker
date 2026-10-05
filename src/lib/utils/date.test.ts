@@ -8,9 +8,11 @@ import {
 	formatYearMonth,
 	parseYearMonth,
 	previousYearMonth,
+	resolveYear,
 	resolveYearMonth,
 	todayIsoDate,
-	yearMonthRange
+	yearMonthRange,
+	yearRange
 } from './date';
 
 afterEach(() => {
@@ -126,6 +128,28 @@ describe('normalizeIsoDate', () => {
 		expect(normalizeIsoDate('not-a-date')).toBeNull();
 		expect(normalizeIsoDate('18/07/2026')).toBeNull();
 		expect(normalizeIsoDate('2026-13-01')).toBeNull();
+	});
+});
+
+describe('resolveYear', () => {
+	test('parses a four digit year', () => {
+		expect(resolveYear('2025')).toBe(2025);
+		expect(resolveYear(' 2024 ')).toBe(2024);
+	});
+
+	test('falls back to the current year for invalid values', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 8, 10));
+
+		expect(resolveYear(null)).toBe(2026);
+		expect(resolveYear('26')).toBe(2026);
+		expect(resolveYear('2026-09')).toBe(2026);
+	});
+});
+
+describe('yearRange', () => {
+	test('returns the first day of the year and the next year', () => {
+		expect(yearRange(2026)).toEqual({ start: '2026-01-01', end: '2027-01-01' });
 	});
 });
 

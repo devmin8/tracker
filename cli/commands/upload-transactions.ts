@@ -3,8 +3,9 @@ import { readdir } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
 import * as v from 'valibot';
 
-import { Command, command, type CommandDefinition } from '$cli/utils/command';
+import type { Command, CommandDefinition } from '$cli/utils/command';
 import { normalizeCookie } from '$cli/utils/cookie-helper';
+import { request } from '$lib/utils/request';
 
 const MONTHS = [
 	'Jan',
@@ -39,8 +40,7 @@ type MonthUpload = {
 };
 
 type UploadResponse = {
-	rowCount?: number;
-	message?: string;
+	rowCount: number;
 };
 
 const uploadTransactionsDefinition = {
@@ -194,7 +194,7 @@ async function uploadMonth(baseUrl: string, cookie: string, upload: MonthUpload)
 	}
 	form.append('month', upload.month);
 
-	const response = await fetch(`${baseUrl}/transactions/upload`, {
+	const response = await request<UploadResponse>(`${baseUrl}/transactions/upload`, {
 		method: 'POST',
 		headers: {
 			Cookie: cookie,
@@ -204,27 +204,21 @@ async function uploadMonth(baseUrl: string, cookie: string, upload: MonthUpload)
 		redirect: 'manual'
 	});
 
-	if (response.status >= 300 && response.status < 400) {
-		throw new Error(`${upload.month}: login cookie was rejected`);
-	}
-
-	const body = (await response.json().catch(() => null)) as UploadResponse | null;
 	if (!response.ok) {
-		throw new Error(`${upload.month}: ${body?.message ?? `upload failed (${response.status})`}`);
+		const status = response.error.status ?? 0;
+		if (status === 401 || (status >= 300 && status < 400)) {
+			throw new Error(`${upload.month}: login cookie was rejected`);
+		}
+		throw new Error(`${upload.month}: ${response.error.message}`);
 	}
 
-	return body?.rowCount ?? 0;
+	return response.result.rowCount;
 }
 
-@command(uploadTransactionsDefinition)
-export class UploadTransactionsCommand extends Command<typeof UploadTransactionsInput> {
-	readonly schema = UploadTransactionsInput;
-
-	protected async execute({
-		folder,
-		cookie,
-		baseUrl
-	}: v.InferOutput<typeof UploadTransactionsInput>) {
+export const uploadTransactionsCommand = {
+	definition: uploadTransactionsDefinition,
+	schema: UploadTransactionsInput,
+	async execute({ folder, cookie, baseUrl }) {
 		const files = await loadCsvFiles(folder, new Date());
 		const uploads = groupFilesByMonth(files);
 
@@ -237,4 +231,4 @@ export class UploadTransactionsCommand extends Command<typeof UploadTransactions
 			console.log(`${upload.month}: ${rowCount} rows (${names})`);
 		}
 	}
-}
+} satisfies Command<typeof UploadTransactionsInput>;

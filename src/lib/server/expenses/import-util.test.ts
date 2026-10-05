@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { formatYearMonth } from '$lib/utils/date';
 
-import { parseImportedFiles } from './expenses.service';
+import { parseImportedFiles } from './import-util';
 
 function csvFile(name: string, contents: string) {
 	return new File([contents], name, { type: 'text/csv' });

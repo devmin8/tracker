@@ -24,15 +24,3 @@ export function parseTaskFilter(value: string | null | undefined): TaskFilter {
 
 	return 'all';
 }
-
-export function parseTasksPage(value: string | null | undefined): number {
-	const page = Number(value);
-
-	return Number.isInteger(page) && page >= 1 ? page : 1;
-}
-
-export function clampTasksPage(page: number, total: number, pageSize: number): number {
-	const pageCount = Math.max(1, Math.ceil(total / pageSize));
-
-	return Math.min(Math.max(page, 1), pageCount);
-}

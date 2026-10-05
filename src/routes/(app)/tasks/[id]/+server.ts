@@ -22,7 +22,7 @@ export const PUT = protectedApi(async ({ params, request }, user) => {
 
 	const result = await updateTask(db, user.id, taskId, parsed.output);
 	if (!result.ok) {
-		return result.message === 'Task not found'
+		return result.reason === 'not-found'
 			? apiError(404, result.message)
 			: badRequest(result.message);
 	}

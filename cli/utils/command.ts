@@ -1,6 +1,8 @@
-import { parseArgs } from 'node:util';
+import { parseArgs, type ParseArgsOptionsConfig } from 'node:util';
 
 import * as v from 'valibot';
+
+import { safeTry } from '$lib/utils/safe-try';
 
 export type CommandArgument = {
 	name: string;
@@ -26,53 +28,35 @@ export type CommandDefinition = {
 	options: CommandOption[];
 };
 
-type CommandConstructor = new () => CommandInstance;
-export type CommandInstance = { run(args: string[]): Promise<void> };
 type CommandSchema = v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>;
 type RawInput = Record<string, unknown>;
 
-const definitions = new WeakMap<CommandConstructor, CommandDefinition>();
+export type Command<TSchema extends CommandSchema = CommandSchema> = {
+	definition: CommandDefinition;
+	schema: TSchema;
+	execute(input: v.InferOutput<TSchema>): Promise<void>;
+};
 
-export abstract class Command<TSchema extends CommandSchema> {
-	abstract readonly schema: TSchema;
-
-	async run(args: string[]) {
-		const definition = getCommandDefinition(this.constructor as CommandConstructor);
-		const rawInput = parseCommandArgs(definition, args);
-		const result = v.safeParse(this.schema, rawInput);
-
-		if (!result.success) {
-			throw new CommandInputError(
-				definition,
-				result.issues.map((issue) => issue.message)
-			);
-		}
-
-		await this.execute(result.output);
+export async function runCommand<TSchema extends CommandSchema>(
+	{ definition, schema, execute }: Command<TSchema>,
+	args: string[]
+) {
+	const rawInput = parseCommandArgs(definition, args);
+	const result = v.safeParse(schema, rawInput);
+	if (!result.success) {
+		throw new CommandInputError(
+			definition,
+			result.issues.map((issue) => issue.message)
+		);
 	}
 
-	protected abstract execute(input: v.InferOutput<TSchema>): Promise<void>;
+	await execute(result.output);
 }
 
 export class CommandInputError extends Error {
 	constructor(definition: CommandDefinition, messages: string[]) {
 		super(`${messages.join('\n')}\n\n${formatCommandHelp(definition)}`);
 	}
-}
-
-export function command(definition: CommandDefinition) {
-	return (target: CommandConstructor) => {
-		definitions.set(target, definition);
-	};
-}
-
-export function getCommandDefinition(commandConstructor: CommandConstructor) {
-	const definition = definitions.get(commandConstructor);
-	if (!definition) {
-		throw new Error(`${commandConstructor.name} is missing a command definition`);
-	}
-
-	return definition;
 }
 
 export function formatCommandHelp(definition: CommandDefinition) {
@@ -105,25 +89,25 @@ export function formatCommandHelp(definition: CommandDefinition) {
 }
 
 function parseCommandArgs(definition: CommandDefinition, args: string[]) {
-	const optionConfig: Record<string, { type: 'string' }> = {};
+	const optionConfig: ParseArgsOptionsConfig = {};
 	for (const option of definition.options) {
 		optionConfig[option.flag] = { type: 'string' };
 	}
 
-	let values: Record<string, string | undefined>;
-	let positionals: string[];
-	try {
-		({ values, positionals } = parseArgs({
+	const parsed = safeTry(() =>
+		parseArgs({
 			args,
 			allowPositionals: true,
 			options: optionConfig,
 			strict: true
-		}));
-	} catch (error) {
+		})
+	);
+	if (!parsed.ok) {
 		throw new CommandInputError(definition, [
-			error instanceof Error ? error.message : String(error)
+			parsed.error instanceof Error ? parsed.error.message : String(parsed.error)
 		]);
 	}
+	const { values, positionals } = parsed.result;
 
 	if (positionals.length > definition.arguments.length) {
 		throw new CommandInputError(definition, ['Too many arguments']);
@@ -151,5 +135,3 @@ function formatOption(option: CommandOption) {
 	const label = option.required ? `${option.name} (required)` : option.name;
 	return `  ${label}${' '.repeat(Math.max(1, 34 - label.length))}${option.description}`;
 }
-
-export type { CommandConstructor };

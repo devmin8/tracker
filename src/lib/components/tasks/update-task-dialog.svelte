@@ -7,6 +7,7 @@
 	import type { EditableTask } from '$lib/tasks/task-item';
 	import type { FormValues } from '$lib/utils/form';
 	import { request } from '$lib/utils/request';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	import UpdateTaskForm from './update-task.svelte';
 
@@ -28,30 +29,37 @@
 	}
 
 	async function onsubmit(input: FormValues) {
-		if (!task) return;
+		if (!task || submitting) return;
 
 		const current = task;
 		submitting = true;
 		errorMessage = undefined;
 
-		const outcome = await request<{ id: string }>(`/tasks/${current.id}`, {
+		const outcome = await request(`/tasks/${current.id}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(input)
 		});
 
-		if (outcome.ok) {
-			await invalidateAll();
-			task = undefined;
-			toast.success('Task updated');
-		} else {
+		const refreshed = outcome.ok ? await safeResolve(invalidateAll) : undefined;
+		if (task !== current) return;
+		submitting = false;
+
+		if (!outcome.ok) {
 			errorMessage =
 				outcome.error.kind === 'network'
 					? 'Unable to save the task. Check your connection and try again.'
 					: outcome.error.message;
+			return;
 		}
 
-		submitting = false;
+		task = undefined;
+		if (!refreshed?.ok) {
+			toast.error('Task saved, but the page could not be refreshed. Please reload the page.');
+			return;
+		}
+
+		toast.success('Task updated');
 	}
 </script>
 

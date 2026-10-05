@@ -84,7 +84,7 @@ export const TAG_REVIEW_PAGE = /* html */ `<!doctype html>
 		done: { label: 'Done', match: isDone }
 	};
 
-	const state = { rows: [], saved: new Map(), tagKeys: null, filter: 'blank', search: '' };
+	const state = { rows: [], saved: new Map(), tagKeys: null, filter: 'blank', search: '', saving: false };
 	const el = (id) => document.getElementById(id);
 
 	function isDone(row) { return row.result.toLowerCase() === 'ok'; }
@@ -186,25 +186,30 @@ export const TAG_REVIEW_PAGE = /* html */ `<!doctype html>
 			})
 		);
 		const dirty = dirtyRows().length;
-		el('save').disabled = dirty === 0;
+		el('save').disabled = state.saving || dirty === 0;
 		el('save').textContent = dirty > 0 ? 'Save ' + dirty : 'Save';
 	}
 
 	function setStatus(text) { el('status').textContent = text; }
 
 	async function save() {
+		if (state.saving) return;
 		const edits = dirtyRows().map(({ refinedDescription, suggestedTag }) => ({ refinedDescription, suggestedTag }));
 		if (edits.length === 0) return;
 
+		state.saving = true;
+		renderHeader();
 		setStatus('Saving…');
 		const response = await fetch('/save', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ edits })
 		}).catch(() => null);
+		state.saving = false;
 
 		if (!response || !response.ok) {
 			setStatus('Save failed. Is the CLI still running?');
+			renderHeader();
 			return;
 		}
 

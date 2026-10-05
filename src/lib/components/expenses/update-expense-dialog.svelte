@@ -6,6 +6,7 @@
 	import type { Expense } from '$lib/expenses';
 	import type { FormValues } from '$lib/utils/form';
 	import { request } from '$lib/utils/request';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	import UpdateExpenseForm from './update-expense.svelte';
 
@@ -26,30 +27,37 @@
 	}
 
 	async function onsubmit(input: FormValues) {
-		if (!expense) return;
+		if (!expense || submitting) return;
 
 		const current = expense;
 		submitting = true;
 		errorMessage = undefined;
 
-		const outcome = await request<{ id: string }>(`/expenses/${current.id}`, {
+		const outcome = await request(`/expenses/${current.id}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(input)
 		});
 
-		if (outcome.ok) {
-			await invalidateAll();
-			expense = undefined;
-			toast.success('Expense updated');
-		} else {
+		const refreshed = outcome.ok ? await safeResolve(invalidateAll) : undefined;
+		if (expense !== current) return;
+		submitting = false;
+
+		if (!outcome.ok) {
 			errorMessage =
 				outcome.error.kind === 'network'
 					? 'Unable to save the expense. Check your connection and try again.'
 					: outcome.error.message;
+			return;
 		}
 
-		submitting = false;
+		expense = undefined;
+		if (!refreshed?.ok) {
+			toast.error('Expense saved, but the page could not be refreshed. Please reload the page.');
+			return;
+		}
+
+		toast.success('Expense updated');
 	}
 </script>
 

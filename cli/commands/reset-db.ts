@@ -1,12 +1,10 @@
-import * as v from 'valibot';
-
-import { createDb } from '$lib/server/db/create-db';
 import { deleteDatabaseFile, migrateDatabase } from '$cli/services/database';
 import { createUser } from '$cli/services/users';
-import { Command, command, type CommandDefinition } from '$cli/utils/command';
+import type { Command, CommandDefinition } from '$cli/utils/command';
 import { loadCliEnv } from '$cli/utils/env';
 import { promptForPassword } from '$cli/utils/prompt';
 import { UserInput, userOptions } from '$cli/utils/user-input';
+import { createDb } from '$lib/server/db/create-db';
 
 const resetDbDefinition = {
 	name: 'reset-db',
@@ -17,11 +15,10 @@ const resetDbDefinition = {
 	options: userOptions
 } satisfies CommandDefinition;
 
-@command(resetDbDefinition)
-export class ResetDbCommand extends Command<typeof UserInput> {
-	readonly schema = UserInput;
-
-	protected async execute({ email, name }: v.InferOutput<typeof UserInput>) {
+export const resetDbCommand = {
+	definition: resetDbDefinition,
+	schema: UserInput,
+	async execute({ email, name }) {
 		if (process.env.NODE_ENV === 'production') {
 			throw new Error('reset-db is disabled when NODE_ENV=production');
 		}
@@ -40,4 +37,4 @@ export class ResetDbCommand extends Command<typeof UserInput> {
 		await createUser(db, env, { email, name, password });
 		console.log(`Created user: ${email}`);
 	}
-}
+} satisfies Command<typeof UserInput>;

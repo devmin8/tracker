@@ -1,12 +1,13 @@
 import {
-	error,
 	isHttpError,
 	isRedirect,
 	json,
+	redirect,
 	type RequestEvent,
 	type RequestHandler
 } from '@sveltejs/kit';
 
+import { loginUrl } from '$lib/server/auth/redirect';
 import { safeResolve } from '$lib/utils/safe-resolve';
 import type { SafeTryResult } from '$lib/utils/safe-try';
 
@@ -16,11 +17,13 @@ type ApiError = {
 	message: string;
 };
 
+// Page loads redirect to login; endpoints use protectedApi for JSON 401 responses.
 export function requireAuthenticatedUser(
-	user: App.Locals['user']
+	user: App.Locals['user'],
+	url: URL
 ): NonNullable<App.Locals['user']> {
 	if (!user) {
-		error(401, 'Unauthorized');
+		redirect(303, loginUrl(url));
 	}
 
 	return user;
@@ -33,17 +36,16 @@ export function protectedApi(handler: ApiHandler): RequestHandler {
 			return apiError(401, 'Unauthorized');
 		}
 
-		try {
-			return await handler(event, user);
-		} catch (exception) {
-			// SvelteKit error()/redirect() must be rethrown so the framework can handle them.
-			if (isHttpError(exception) || isRedirect(exception)) {
-				throw exception;
-			}
+		const outcome = await safeResolve(() => handler(event, user));
+		if (outcome.ok) return outcome.result;
 
-			console.error('API request failed', exception);
-			return apiError(500, 'Something went wrong. Please try again.');
+		// SvelteKit error()/redirect() must be rethrown so the framework can handle them.
+		if (isHttpError(outcome.error) || isRedirect(outcome.error)) {
+			throw outcome.error;
 		}
+
+		console.error('API request failed', outcome.error);
+		return apiError(500, 'Something went wrong. Please try again.');
 	};
 }
 

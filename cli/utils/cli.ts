@@ -1,36 +1,22 @@
-import {
-	formatCommandHelp,
-	getCommandDefinition,
-	type CommandConstructor,
-	type CommandInstance,
-	type CommandDefinition
-} from './command';
+import { formatCommandHelp, runCommand, type Command } from './command';
 
 type CliOptions = {
 	title: string;
 	description: string;
 };
 
-type RegisteredCommand = {
-	definition: CommandDefinition;
-	command: CommandInstance;
-};
-
 export class Cli {
-	#commands = new Map<string, RegisteredCommand>();
+	#commands = new Map<string, Command>();
 
 	constructor(private options: CliOptions) {}
 
-	register(commandConstructor: CommandConstructor) {
-		const definition = getCommandDefinition(commandConstructor);
+	register(command: Command) {
+		const { definition } = command;
 		if (this.#commands.has(definition.name)) {
 			throw new Error(`Command already registered: ${definition.name}`);
 		}
 
-		this.#commands.set(definition.name, {
-			definition,
-			command: new commandConstructor()
-		});
+		this.#commands.set(definition.name, command);
 
 		return this;
 	}
@@ -52,7 +38,7 @@ export class Cli {
 			return;
 		}
 
-		await registered.command.run(commandArgs);
+		await runCommand(registered, commandArgs);
 	}
 
 	private usage() {

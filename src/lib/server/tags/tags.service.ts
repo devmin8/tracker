@@ -2,6 +2,7 @@ import { and, asc, eq, isNull } from 'drizzle-orm';
 
 import type { Database } from '$lib/server/db/create-db';
 import { descriptionTag, expense, tag } from '$lib/server/db/schema';
+import { joinDescriptionTag } from '$lib/server/expenses';
 
 type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 type UpdateTagsInput = {
@@ -81,13 +82,7 @@ export async function listUntaggedDescriptions(
 			amount: expense.amount
 		})
 		.from(expense)
-		.leftJoin(
-			descriptionTag,
-			and(
-				eq(descriptionTag.userId, expense.createdBy),
-				eq(descriptionTag.refinedDescription, expense.refinedDescription)
-			)
-		)
+		.leftJoin(descriptionTag, joinDescriptionTag)
 		.where(and(eq(expense.createdBy, userId), isNull(descriptionTag.tagId)))
 		.orderBy(asc(expense.refinedDescription), asc(expense.expenseDate));
 

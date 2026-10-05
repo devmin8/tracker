@@ -3,9 +3,10 @@ import { resolve } from 'node:path';
 import Papa from 'papaparse';
 import * as v from 'valibot';
 
-import { Command, command, type CommandDefinition } from '$cli/utils/command';
+import type { Command, CommandDefinition } from '$cli/utils/command';
 import { normalizeCookie } from '$cli/utils/cookie-helper';
 import { CreateExpenseSchema } from '$lib/schemas/create-expense.schema';
+import { request } from '$lib/utils/request';
 
 const STATUS_COLUMN = 3;
 const UPLOADED_STATUS = 'ok';
@@ -14,11 +15,6 @@ const STATUS_HEADER = 'status';
 type CsvFile = {
 	path: string;
 	name: string;
-};
-
-type AddExpenseResponse = {
-	id?: string;
-	message?: string;
 };
 
 type PostExpenseResult = { ok: true } | { ok: false; message: string };
@@ -182,7 +178,7 @@ async function postExpense(
 	fileName: string,
 	expense: PendingExpense
 ): Promise<PostExpenseResult> {
-	const response = await fetch(`${baseUrl}/expenses/add`, {
+	const response = await request(`${baseUrl}/expenses/add`, {
 		method: 'POST',
 		headers: {
 			Cookie: cookie,
@@ -193,13 +189,12 @@ async function postExpense(
 		redirect: 'manual'
 	});
 
-	if (response.status === 401 || (response.status >= 300 && response.status < 400)) {
-		throw new Error(`${fileName}: login cookie was rejected`);
-	}
-
-	const body = (await response.json().catch(() => null)) as AddExpenseResponse | null;
 	if (!response.ok) {
-		return { ok: false, message: body?.message ?? `upload failed (${response.status})` };
+		const status = response.error.status ?? 0;
+		if (status === 401 || (status >= 300 && status < 400)) {
+			throw new Error(`${fileName}: login cookie was rejected`);
+		}
+		return { ok: false, message: response.error.message };
 	}
 
 	return { ok: true };
@@ -272,11 +267,10 @@ function isHeaderRow(cols: string[]) {
 	);
 }
 
-@command(uploadExpenseDefinition)
-export class UploadExpenseCommand extends Command<typeof UploadExpenseInput> {
-	readonly schema = UploadExpenseInput;
-
-	protected async execute({ folder, cookie, baseUrl }: v.InferOutput<typeof UploadExpenseInput>) {
+export const uploadExpenseCommand = {
+	definition: uploadExpenseDefinition,
+	schema: UploadExpenseInput,
+	async execute({ folder, cookie, baseUrl }) {
 		const files = await loadCsvFiles(folder);
 
 		console.log(`Folder ${folder}`);
@@ -286,4 +280,4 @@ export class UploadExpenseCommand extends Command<typeof UploadExpenseInput> {
 			await uploadFile(file, cookie, baseUrl);
 		}
 	}
-}
+} satisfies Command<typeof UploadExpenseInput>;

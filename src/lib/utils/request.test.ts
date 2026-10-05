@@ -63,6 +63,19 @@ describe('request', () => {
 		});
 	});
 
+	test.each([null, 42, 'error', [], { message: 42 }])(
+		'returns an error value for an unexpected error body: %j',
+		async (body) => {
+			vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(body, 500)));
+
+			await expect(request('/expenses/tags')).resolves.toEqual({
+				ok: false,
+				result: undefined,
+				error: { kind: 'http', message: 'Request failed', status: 500 }
+			});
+		}
+	);
+
 	test('returns a fallback when an ok body is not JSON', async () => {
 		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('not-json', { status: 200 })));
 

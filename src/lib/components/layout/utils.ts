@@ -43,6 +43,13 @@ export const navItems: NavItem[] = [
 	{
 		title: 'Tasks',
 		url: '/tasks'
+	},
+	{
+		title: 'Reports',
+		items: [
+			{ title: 'Yearly', url: '/reports/yearly' },
+			{ title: 'All expenses', url: '/reports/expenses' }
+		]
 	}
 ];
 

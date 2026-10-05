@@ -7,6 +7,7 @@
 	import { FieldError } from '$lib/components/ui/field';
 	import { formatCents } from '$lib/utils/amount';
 	import { request } from '$lib/utils/request';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	export type DeletableExpense = {
 		id: string;
@@ -31,27 +32,35 @@
 	}
 
 	async function confirmDelete() {
-		if (!expense) return;
+		if (!expense || submitting) return;
 
+		const current = expense;
 		submitting = true;
 		errorMessage = undefined;
 
-		const outcome = await request(`/expenses/${expense.id}`, {
+		const outcome = await request(`/expenses/${current.id}`, {
 			method: 'DELETE'
 		});
 
-		if (outcome.ok) {
-			await invalidateAll();
-			expense = undefined;
-			toast.success('Expense deleted');
-		} else {
+		const refreshed = outcome.ok ? await safeResolve(invalidateAll) : undefined;
+		if (expense !== current) return;
+		submitting = false;
+
+		if (!outcome.ok) {
 			errorMessage =
 				outcome.error.kind === 'network'
 					? 'Unable to delete the expense. Check your connection and try again.'
 					: outcome.error.message;
+			return;
 		}
 
-		submitting = false;
+		expense = undefined;
+		if (!refreshed?.ok) {
+			toast.error('Expense deleted, but the page could not be refreshed. Please reload the page.');
+			return;
+		}
+
+		toast.success('Expense deleted');
 	}
 </script>
 

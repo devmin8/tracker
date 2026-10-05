@@ -5,7 +5,7 @@ import type { AddressInfo } from 'node:net';
 import { basename, resolve } from 'node:path';
 import * as v from 'valibot';
 
-import { Command, command, type CommandDefinition } from '$cli/utils/command';
+import type { Command, CommandDefinition } from '$cli/utils/command';
 import { normalizeCookie } from '$cli/utils/cookie-helper';
 import {
 	applyTagEdits,
@@ -184,9 +184,16 @@ async function reviewTags(api: Api | undefined, file: string) {
 	await readRows(file);
 	const tags = api ? (await apiGet<TagsResponse>(api, '/expenses/tags')).tags : null;
 
+	// Serialize reads and saves so each edit is applied to the latest complete CSV.
+	let pendingRequests = Promise.resolve();
 	const server = createServer((req, res) => {
-		handleReviewRequest(req, res, file, tags).catch((error: unknown) => {
-			sendJson(res, 500, { message: error instanceof Error ? error.message : 'Request failed' });
+		pendingRequests = pendingRequests.then(async () => {
+			const outcome = await safeResolve(() => handleReviewRequest(req, res, file, tags));
+			if (!outcome.ok) {
+				sendJson(res, 500, {
+					message: outcome.error instanceof Error ? outcome.error.message : 'Request failed'
+				});
+			}
 		});
 	});
 
@@ -317,11 +324,10 @@ function requireApi(cookie: string | undefined, baseUrl: string): Api {
 	return { cookie, baseUrl };
 }
 
-@command(updateTagDefinition)
-export class UpdateTagCommand extends Command<typeof UpdateTagInput> {
-	readonly schema = UpdateTagInput;
-
-	protected async execute({ mode, file, cookie, baseUrl }: v.InferOutput<typeof UpdateTagInput>) {
+export const updateTagCommand = {
+	definition: updateTagDefinition,
+	schema: UpdateTagInput,
+	async execute({ mode, file, cookie, baseUrl }) {
 		if (mode === 'review') {
 			await reviewTags(cookie ? { cookie, baseUrl } : undefined, file);
 		} else if (mode === 'export') {
@@ -330,4 +336,4 @@ export class UpdateTagCommand extends Command<typeof UpdateTagInput> {
 			await applyTags(requireApi(cookie, baseUrl), file);
 		}
 	}
-}
+} satisfies Command<typeof UpdateTagInput>;

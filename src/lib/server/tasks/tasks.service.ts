@@ -14,6 +14,7 @@ import { userExists } from '$lib/server/users';
 import type { TaskItem } from '$lib/tasks/task-item';
 import type { TaskFilter } from '$lib/tasks/task-list';
 import { todayIsoDate } from '$lib/utils/date';
+import { pageOffset, paginate, type Pagination } from '$lib/utils/pagination';
 
 export const TASKS_PAGE_SIZE = 50;
 
@@ -21,46 +22,51 @@ export type ListedTask = TaskItem;
 
 export type ListTasksResult = {
 	tasks: ListedTask[];
-	total: number;
-};
-
-export type ListTasksInput = {
-	limit: number;
-	offset: number;
+	pagination: Pagination;
 };
 
 export async function listTasks(
 	db: Database,
 	userId: string,
 	filter: TaskFilter,
-	{ limit, offset }: ListTasksInput
+	requestedPage: number
 ): Promise<ListTasksResult> {
 	const where = whereAccessibleTasks(userId, filter);
 
-	const [tasks, [totalRow]] = await Promise.all([
-		db
-			.select({
-				id: task.id,
-				name: task.name,
-				dueOn: task.dueOn,
-				status: task.status,
-				assignedTo: task.assignedTo,
-				finishedAt: task.finishedAt,
-				assigneeName: user.name
-			})
-			.from(task)
-			.leftJoin(user, eq(task.assignedTo, user.id))
-			.where(where)
-			.orderBy(asc(task.dueOn), desc(task.createdAt))
-			.limit(limit)
-			.offset(offset),
-		db.select({ total: count() }).from(task).where(where)
-	]);
+	const [totalRow] = await db.select({ total: count() }).from(task).where(where);
+	const pagination = paginate(requestedPage, totalRow?.total ?? 0, TASKS_PAGE_SIZE);
+	const tasks = await db
+		.select({
+			id: task.id,
+			name: task.name,
+			dueOn: task.dueOn,
+			status: task.status,
+			assignedTo: task.assignedTo,
+			finishedAt: task.finishedAt,
+			assigneeName: user.name
+		})
+		.from(task)
+		.leftJoin(user, eq(task.assignedTo, user.id))
+		.where(where)
+		.orderBy(asc(task.dueOn), desc(task.createdAt))
+		.limit(pagination.pageSize)
+		.offset(pageOffset(pagination));
 
-	return { tasks, total: totalRow?.total ?? 0 };
+	return { tasks, pagination };
 }
 
-export type TaskWriteResult = { ok: true; id: string } | { ok: false; message: string };
+type TaskWriteSuccess = {
+	ok: true;
+	id: string;
+};
+
+type TaskWriteFailure = {
+	ok: false;
+	reason: 'not-found' | 'invalid-assignee';
+	message: string;
+};
+
+export type TaskWriteResult = TaskWriteSuccess | TaskWriteFailure;
 
 export async function createTask(
 	db: Database,
@@ -68,7 +74,7 @@ export async function createTask(
 	input: CreateTaskInput
 ): Promise<TaskWriteResult> {
 	if (!(await userExists(db, input.assignedTo))) {
-		return { ok: false, message: 'Select a valid assignee' };
+		return { ok: false, reason: 'invalid-assignee', message: 'Select a valid assignee' };
 	}
 
 	const created = await db.transaction(async (tx) => {
@@ -102,7 +108,7 @@ export async function updateTask(
 	input: UpdateTaskInput
 ): Promise<TaskWriteResult> {
 	if (!(await userExists(db, input.assignedTo))) {
-		return { ok: false, message: 'Select a valid assignee' };
+		return { ok: false, reason: 'invalid-assignee', message: 'Select a valid assignee' };
 	}
 
 	const updated = await db.transaction(async (tx) => {
@@ -139,7 +145,7 @@ export async function updateTask(
 	});
 
 	if (!updated) {
-		return { ok: false, message: 'Task not found' };
+		return { ok: false, reason: 'not-found', message: 'Task not found' };
 	}
 
 	return { ok: true, id: updated.id };
@@ -172,7 +178,7 @@ export async function deleteTask(
 	});
 
 	if (!deleted) {
-		return { ok: false, message: 'Task not found' };
+		return { ok: false, reason: 'not-found', message: 'Task not found' };
 	}
 
 	return { ok: true, id: deleted.id };

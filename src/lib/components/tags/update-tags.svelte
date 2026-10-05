@@ -5,6 +5,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { FieldGroup, Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	import { UpdateTagsSchema, type UpdateTagsInput } from './update-tags-form.schema';
 
@@ -28,6 +29,7 @@
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (submitting) return;
 
 		const result = v.safeParse(UpdateTagsSchema, Object.fromEntries(new FormData(form)));
 		if (!result.success) {
@@ -39,14 +41,11 @@
 		errorMessage = undefined;
 		submitting = true;
 
-		try {
-			const failure = await onsubmit(result.output);
-			if (failure) errorMessage = failure.message;
-		} catch {
-			errorMessage = 'Unable to save the tag. Please try again.';
-		} finally {
-			submitting = false;
-		}
+		const outcome = await safeResolve(() => onsubmit(result.output));
+		submitting = false;
+		errorMessage = outcome.ok
+			? outcome.result?.message
+			: 'Unable to save the tag. Please try again.';
 	}
 </script>
 

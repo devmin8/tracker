@@ -24,5 +24,6 @@ describe('navigation', () => {
 			{ label: 'Expenses' },
 			{ label: 'Upload Transactions' }
 		]);
+		expect(breadcrumbsFor('/reports/yearly')).toEqual([{ label: 'Reports' }, { label: 'Yearly' }]);
 	});
 });

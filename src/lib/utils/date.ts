@@ -109,6 +109,20 @@ export function yearMonthRange(month: YearMonth) {
 	};
 }
 
+const YEAR_PATTERN = /^\d{4}$/;
+
+export function resolveYear(value: string | null | undefined): number {
+	const trimmed = value?.trim() ?? '';
+	return YEAR_PATTERN.test(trimmed) ? Number(trimmed) : currentYearMonthParts().year;
+}
+
+export function yearRange(year: number) {
+	return {
+		start: `${year}-01-01`,
+		end: `${year + 1}-01-01`
+	};
+}
+
 const DATE_FORMATS = ['yyyy-MM-dd', 'MM/dd/yyyy'] as const;
 
 export function normalizeIsoDate(value: string) {

@@ -3,6 +3,7 @@
 
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { ListPagination } from '$lib/components/list-pagination';
 	import { AddTaskDialog, ManageTasks, TaskActions, type TaskAction } from '$lib/components/tasks';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
@@ -22,9 +23,6 @@
 			: `No ${TASK_FILTER_OPTIONS.find((option) => option.value === data.status)?.label.toLowerCase() ?? ''} tasks`
 	);
 
-	const rangeStart = $derived(data.total === 0 ? 0 : (data.page - 1) * data.pageSize + 1);
-	const rangeEnd = $derived(Math.min(data.page * data.pageSize, data.total));
-
 	function setStatus(next: TaskFilter) {
 		if (next === data.status) return;
 
@@ -36,7 +34,7 @@
 	}
 
 	function setPage(nextPage: number) {
-		if (nextPage === data.page) return;
+		if (nextPage === data.pagination.page) return;
 
 		goto(resolve(`/tasks?status=${data.status}&page=${nextPage}`), {
 			replaceState: true,
@@ -50,7 +48,7 @@
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 		<div class="flex items-center gap-2">
 			<span class="text-muted-foreground text-sm font-medium">Total :</span>
-			<span class="text-xl font-semibold tabular-nums">{data.total}</span>
+			<span class="text-xl font-semibold tabular-nums">{data.pagination.total}</span>
 		</div>
 		<div class="flex items-center gap-3">
 			<Select.Root
@@ -149,32 +147,7 @@
 		{/snippet}
 	</ManageTasks>
 
-	<div class="flex items-center justify-between gap-3">
-		<p class="text-muted-foreground text-sm tabular-nums">
-			Showing {rangeStart}–{rangeEnd} of {data.total}
-		</p>
-		<div class="flex items-center gap-2">
-			<Button
-				variant="outline"
-				size="sm"
-				disabled={data.page <= 1}
-				onclick={() => setPage(data.page - 1)}
-			>
-				Prev
-			</Button>
-			<span class="text-muted-foreground text-sm tabular-nums">
-				Page {data.page} of {data.pageCount}
-			</span>
-			<Button
-				variant="outline"
-				size="sm"
-				disabled={data.page >= data.pageCount}
-				onclick={() => setPage(data.page + 1)}
-			>
-				Next
-			</Button>
-		</div>
-	</div>
+	<ListPagination {...data.pagination} onPageChange={setPage} />
 </div>
 
 <AddTaskDialog

@@ -16,6 +16,12 @@ export type ExpenseGroup = {
 	amount: number;
 };
 
+export type TagExpenseGroup = {
+	tag: string | null;
+	count: number;
+	amount: number;
+};
+
 type GroupableExpense = Pick<Expense, 'refinedDescription' | 'tag' | 'amount'>;
 
 export function groupExpenses(expenses: GroupableExpense[]): ExpenseGroup[] {

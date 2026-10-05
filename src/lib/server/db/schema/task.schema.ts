@@ -33,7 +33,7 @@ export const task = sqliteTable(
 			.notNull(),
 		isArchived: integer('is_archived', { mode: 'boolean' }).default(false).notNull()
 	},
-	(	table) => [
+	(table) => [
 		index('task_created_by_due_on_idx').on(table.createdBy, table.dueOn),
 		index('task_assigned_to_due_on_idx').on(table.assignedTo, table.dueOn),
 		index('task_status_due_on_idx').on(table.status, table.dueOn)

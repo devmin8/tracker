@@ -15,10 +15,6 @@ export type RequestErr = {
 
 export type RequestResult<T> = SafeTryOk<T> | RequestErr;
 
-type ErrorPayload = {
-	message?: string;
-};
-
 export async function request<T>(
 	input: RequestInfo | URL,
 	init?: RequestInit
@@ -33,15 +29,24 @@ export async function request<T>(
 		};
 	}
 
-	const payload = await safeResolve(() => fetched.result.json() as Promise<T & ErrorPayload>);
+	const payload = await safeResolve((): Promise<unknown> => fetched.result.json());
 
 	if (!fetched.result.ok) {
+		const body = payload.ok ? payload.result : undefined;
+		const message =
+			typeof body === 'object' &&
+			body !== null &&
+			'message' in body &&
+			typeof body.message === 'string'
+				? body.message
+				: 'Request failed';
+
 		return {
 			ok: false,
 			result: undefined,
 			error: {
 				kind: 'http',
-				message: (payload.ok ? payload.result.message : undefined) ?? 'Request failed',
+				message,
 				status: fetched.result.status
 			}
 		};
@@ -55,5 +60,5 @@ export async function request<T>(
 		};
 	}
 
-	return { ok: true, result: payload.result };
+	return { ok: true, result: payload.result as T };
 }

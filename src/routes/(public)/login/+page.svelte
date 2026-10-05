@@ -6,6 +6,7 @@
 	import { authClient } from '$lib/auth-client';
 	import { LoginForm, LoginSchema } from '$lib/components/login';
 	import { ToggleTheme } from '$lib/components/toggle-theme';
+	import { safeResolve } from '$lib/utils/safe-resolve';
 
 	import type { PageProps } from './$types';
 
@@ -15,6 +16,7 @@
 	let errorMessage = $state<string | undefined>();
 
 	async function onsubmit(formData: FormData) {
+		if (submitting) return;
 		const result = v.safeParse(LoginSchema, Object.fromEntries(formData));
 
 		if (!result.success) {
@@ -25,22 +27,24 @@
 		submitting = true;
 		errorMessage = undefined;
 
-		try {
-			const { error } = await authClient.signIn.email(result.output);
+		const outcome = await safeResolve(async () => {
+			const response = await authClient.signIn.email(result.output);
+			if (!response.error) await goto(resolve(data.redirectTo as '/'));
+			return response;
+		});
+		submitting = false;
 
-			if (error) {
-				errorMessage =
-					error.status === 429
-						? 'Too many sign-in attempts. Try again later.'
-						: error.message || 'Sign in failed';
-				return;
-			}
-
-			await goto(resolve(data.redirectTo as '/'));
-		} catch {
+		if (!outcome.ok) {
 			errorMessage = 'Unable to sign in. Check your connection and try again.';
-		} finally {
-			submitting = false;
+			return;
+		}
+
+		const { error } = outcome.result;
+		if (error) {
+			errorMessage =
+				error.status === 429
+					? 'Too many sign-in attempts. Try again later.'
+					: error.message || 'Sign in failed';
 		}
 	}
 </script>
