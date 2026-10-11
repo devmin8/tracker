@@ -1,5 +1,6 @@
 import { Cli } from './utils/cli';
 import { createUserCommand } from './commands/create-user';
+import { deleteExpensesCommand } from './commands/delete-expenses';
 import { migrateDbCommand } from './commands/migrate-db';
 import { resetDbCommand } from './commands/reset-db';
 import { updateTagCommand } from './commands/update-tag';
@@ -11,6 +12,7 @@ const cli = new Cli({
 	description: 'Manage Tracker data from the command line.'
 })
 	.register(uploadTransactionsCommand)
+	.register(deleteExpensesCommand)
 	.register(uploadExpenseCommand)
 	.register(updateTagCommand)
 	.register(migrateDbCommand)
